@@ -1,9 +1,14 @@
+Best viewed in emacs org mode.
+
 This is the coursework for the graded part of the TDT4255 course at NTNU.
 
 * Instructions
   To get started with designing your 5-stage RISC-V pipeline you should follow the
   [[./exercise.org][Exercise instructions]]
   
+  If you want an introduction to chisel and hardware design you should do the [[https://github.com/PeterAaser/tdt4255-chisel-intro][Chisel Intro]] 
+  exercise first.
+
 * About
   Since much of the tooling for HW design is rather difficult to work with this skeleton comes
   with a lot of reinvented wheels which should make inspecting what is really going on a little

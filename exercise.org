@@ -267,3 +267,6 @@
 *** Step 8:
     Ensure that the simplest addi test works, and give yourself a pat on the back!
     You've just found the corner pieces of the puzzle, so filling in the rest is "simply" being methodical.
+
+* Delivery
+  Once you are done simply run the deliver.sh script to get an archive.
