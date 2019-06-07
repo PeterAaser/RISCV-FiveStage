@@ -1,0 +1,449 @@
+--------------------------------------------------------------------------
+4.2. Register-Register Arithmetic Instructions
+--------------------------------------------------------------------------
+
+* ADD
+
+ - Summary   : Addition with 3 GPRs, no overflow exception
+ - Assembly  : add rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] + R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 000  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* SUB
+
+ - Summary   : Subtraction with 3 GPRs, no overflow exception
+ - Assembly  : sub rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] - R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0100000    | rs2     | rs1     | 000  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* AND
+
+ - Summary   : Bitwise logical AND with 3 GPRs
+ - Assembly  : and rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] & R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 111  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* OR
+
+ - Summary   : Bitwise logical OR with 3 GPRs
+ - Assembly  : or rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] | R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 110  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* XOR
+
+ - Summary   : Bitwise logical XOR with 3 GPRs
+ - Assembly  : xor rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] ^ R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 100  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* SLT
+
+ - Summary   : Record result of signed less-than comparison with 2 GPRs
+ - Assembly  : slt rd, rs1, rs2
+ - Semantics : R[rd] = ( R[rs1] <s R[rs2] )
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 010  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses a _signed_ comparison.
+
+* SLTU
+
+ - Summary   : Record result of unsigned less-than comparison with 2 GPRs
+ - Assembly  : sltu rd, rs1, rs2
+ - Semantics : R[rd] = ( R[rs1] <u R[rs2] )
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 011  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses an _unsigned_ comparison.
+
+* SRA
+
+ - Summary   : Shift right arithmetic by register value (sign-extend)
+ - Assembly  : sra rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] >>> R[rs2][4:0]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0100000    | rs2     | rs1     | 101  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should ensure that the sign-bit of R[rs1] is
+extended to the right as it does the right shift. The hardware _must_
+only use the bottom five bits of R[rs2] when performing the shift.
+
+* SRL
+
+ - Summary   : Shift right logical by register value (append zeroes)
+ - Assembly  : srl rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] >> R[rs2][4:0]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 101  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the left as it does the
+right shift. The hardware _must_ only use the bottom five bits of R[rs2]
+when performing the shift.
+
+* SLL
+
+ - Summary   : Shift left logical by register value (append zeroes)
+ - Assembly  : sll rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] << R[rs2][4:0]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 001  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the right as it does the
+left shift. The hardware _must_ only use the bottom five bits of R[rs2]
+when performing the shift.
+
+
+--------------------------------------------------------------------------
+4.3. Register-Immediate Arithmetic Instructions
+--------------------------------------------------------------------------
+
+* ADDI
+
+ - Summary   : Add constant, no overflow exception
+ - Assembly  : addi rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] + sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 000  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* ANDI
+
+ - Summary   : Bitwise logical AND with constant
+ - Assembly  : andi rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] & sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 111  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* ORI
+
+ - Summary   : Bitwise logical OR with constant
+ - Assembly  : ori rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] | sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 110  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* XORI
+
+ - Summary   : Bitwise logical XOR with constant
+ - Assembly  : xori rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] ^ sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 100  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SLTI
+
+ - Summary   : Set GPR if source GPR < constant, signed comparison
+ - Assembly  : slti rd, rs1, imm
+ - Semantics : R[rd] = ( R[rs1] <s sext(imm) )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 010  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SLTIU
+
+ - Summary   : Set GPR if source GPR is < constant, unsigned comparison
+ - Assembly  : sltiu rd, rs1, imm
+ - Semantics : R[rd] = ( R[rs1] <u sext(imm) )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 011  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SRAI
+
+ - Summary   : Shift right arithmetic by constant (sign-extend)
+ - Assembly  : srai rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] >>> imm
+ - Format    : I-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0100000    | imm     | rs1     | 101  | rd      | 0010011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should ensure that the sign-bit of R[rs1] is
+extended to the right as it does the right shift.
+
+* SRLI
+
+ - Summary   : Shift right logical by constant (append zeroes)
+ - Assembly  : srli rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] >> imm
+ - Format    : I-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | imm     | rs1     | 101  | rd      | 0010011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the left as it does the
+right shift.
+
+* SLLI
+
+ - Summary   : Shift left logical constant (append zeroes)
+ - Assembly  : slli rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] << imm
+ - Format    : I-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | imm     | rs1     | 001  | rd      | 0010011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the right as it does the
+left shift.
+
+* LUI
+
+ - Summary   : Load constant into upper bits of word
+ - Assembly  : lui rd, imm
+ - Semantics : R[rd] = imm << 12
+ - Format    : U-type, U-immediate
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | 0110111     |
+ +---------------------------------------+---------+-------------+
+
+* AUIPC
+
+ - Summary   : Load PC + constant into upper bits of word
+ - Assembly  : auipc rd, imm
+ - Semantics : R[rd] = PC + ( imm << 12 )
+ - Format    : U-type, U-immediate
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | 0010111     |
+ +---------------------------------------+---------+-------------+
+
+--------------------------------------------------------------------------
+4.4. Memory Instructions
+--------------------------------------------------------------------------
+
+* LW
+
+ - Summary   : Load word from memory
+ - Assembly  : lw rd, imm(rs1)
+ - Semantics : R[rd] = M_4B[ R[rs1] + sext(imm) ]
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 010  | rd      | 0000011     |
+ +----------------------+---------+------+---------+-------------+
+
+All addresses used with LW instructions must be four-byte aligned. This
+means the bottom two bits of every effective address (i.e., after the
+base address is added to the offset) will always be zero.
+
+* SW
+
+ - Summary   : Store word into memory
+ - Assembly  : sw rs2, imm(rs1)
+ - Semantics : M_4B[ R[rs1] + sext(imm) ] = R[rs2]
+ - Format    : S-type, S-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 010  | imm     | 0100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+All addresses used with SW instructions must be four-byte aligned. This
+means the bottom two bits of every effective address (i.e., after the
+base address is added to the offset) will always be zero.
+
+--------------------------------------------------------------------------
+4.5. Unconditional Jump Instructions
+--------------------------------------------------------------------------
+
+* JAL
+
+ - Summary   : Jump to address and place return address in GPR
+ - Assembly  : jal rd, imm
+ - Semantics : R[rd] = PC + 4; PC = PC + sext(imm)
+ - Format    : U-type, J-immediate
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | 1101111     |
+ +---------------------------------------+---------+-------------+
+
+
+* JALR
+
+ - Summary   : Jump to address and place return address in GPR
+ - Assembly  : jalr rd, rs1, imm
+ - Semantics : R[rd] = PC + 4; PC = ( R[rs1] + sext(imm) ) & 0xfffffffe
+ - Format    : I-Type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 000  | rd      | 1100111     |
+ +----------------------+---------+------+---------+-------------+
+
+Note that the target address is obtained by adding the 12-bit signed
+I-immediate to the value in register rs1, then setting the
+least-significant bit of the result to zero. In other words, the JALR
+instruction ignores the lowest bit of the calculated target address.
+
+JALR is used when we want to call different subroutines.
+Consider this jump table:
+
+mul:
+j mulInt
+j mulFloat
+j mulDouble 
+
+depending on the value in rs1 we can select which subroutine to call
+
+--------------------------------------------------------------------------
+4.6. Conditional Branch Instructions
+--------------------------------------------------------------------------
+
+* BEQ
+
+ - Summary   : Branch if 2 GPRs are equal
+ - Assembly  : beq rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] == R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 000  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* BNE
+
+ - Summary   : Branch if 2 GPRs are not equal
+ - Assembly  : bne rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] != R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 001  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* BLT
+
+ - Summary   : Branch based on signed comparison of two GPRs
+ - Assembly  : blt rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] <s R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 100  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses a _signed_ comparison.
+
+* BGE
+
+ - Summary   : Branch based on signed comparison of two GPRs
+ - Assembly  : bge rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] >=s R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 101  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses a _signed_ comparison.
+
+* BLTU
+
+ - Summary   : Branch based on unsigned comparison of two GPRs
+ - Assembly  : bltu rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] <u R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 110  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses an _unsigned_ comparison.
+
+* BGEU
+
+ - Summary   : Branch based on unsigned comparison of two GPRs
+ - Assembly  : bgeu rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] >=u R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 111  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses an _unsigned_ comparison.

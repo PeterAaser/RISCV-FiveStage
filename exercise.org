@@ -1,0 +1,120 @@
+* Exercise 1 & 2
+  The task in this exercise is to implement a 5-stage pipelined processor for
+  the RISCV32I instruction set.
+   
+  You will use the skeleton code which comes with a freebies, namely the registers,
+  instruction memory and data memory.
+  
+  These are contained in the files Registers.scala, Dmem.scala and Imem.scala
+  
+** Getting started
+   In order to make a correct design in a somewhat expedient fashion you need to be
+   *methodical!* 
+   
+   This means you should have a good idea of how your processor should work *before*
+   you start writing code. While chisel is more pleasent to work with than other HDLs
+   the bricoleur approach is not recommended.
+   
+   My recommended approach is therefore to create a sketch of your processor design.
+   Start with an overall sketch showing all the components, then drill down.
+   In your sketch you will eventually add a box for registers, IMEM and DMEM, which
+   should make it clear how the already finished modules fit into the grander design,
+   making the skeleton-code less mysterious.
+   
+   Next, your focus should be to get the simplest possible program to work, a program
+   that simply does a single add operation. Info is progressively being omitted in the
+   later steps, after all brevity is ~~the soul of~~ wit
+   
+   Step 0:
+   In order to verify that the project is set up properly, open sbt in your project root
+   by typing ./sbt (or simply sbt if you already use scala).
+   sbt, which stands for scala build tool will provide you with a repl where you can
+   compile and test your code.
+   
+   The initial run will take quite a while to boot as all the necessary stuff is downloaded.
+
+   Step ¼:
+   In your console, type `compile` to verify that everything compiles correctly.
+
+   Step ½:
+   In your console, type `test` to verify that the tests run, and that chisel can correctly
+   build your design.
+   This command will unleash the full battery of tests on you.
+
+   Step ¾:
+   In your console, type `testOnly FiveStage.SelectedTests` to run only the tests that you
+   have defined in the testConf.scala file.
+   In the skeleton this will run the simple add test only, but you should alter this
+   manifest as you build your processor to run more complex tests as a stopgap between
+   running single tests and the full battery.
+   
+   Be aware that chisel will make quite a lot of noise during test running. I'm not 
+   aware of a good way to get rid of this sadly.
+   
+   Step 1:
+   In order to do this, your processor must be able to select new instructions, so in
+   your IF.scala you must increment the PC.
+
+   Step 2:
+   Next, the instruction must be forwarded to the ID stage, so you will need to add the
+   instruction to the io part of InstructionFetch as an output.
+
+   Step 3:
+   Your ID stage must take in an instruction in its io bundle, and decode it. In the
+   skeleton code a decoder has already been instantiated in the InstructionDecode module,
+   but it is given a dummy instruction.
+   Likewise, you must ensure that the register gets the relevant data. 
+   This can be done by using the instruction class methods (TopLevelSignals.scala) which
+   lets us access the relevant part of the instruction with the dot operator. 
+   For instance: 
+
+   #+BEGIN_SRC scala
+   myModule.io.funct6 := io.instruction.funct6
+   #+END_SRC
+   
+   drives funct6 of `myModule` with the 26th to 31st bit of `instruction`.
+
+   Step 4:
+   Your IF should now have an instruction as an OUTPUT, and your ID as an INPUT, however
+   they are not connected. This must be done in the CPU class where both the ID and IF are
+   instantiated.
+   
+   Step 4½:
+   You should now verify that the correct control signals are produced. Using printf, ensure
+   that:
+   + The program counter is increasing in increments of 4
+   + The instruction in ID is as expected
+   + The decoder output is as expected
+   + The correct operands are fetched from the registers
+     
+   Step 5:
+   You will now have to create the EX stage. Use the structure of the IF and ID modules to
+   guide you here.
+   In your EX stage you should have an ALU, preferrable in its own module a la registers in ID.
+   While the ALU is hugely complex, it's very easy to describle in hardware design languages!
+   Using the same approach as in the decoder should be sufficient:
+
+   #+BEGIN_SRC scala
+   val ALUopMap = Array(
+     ADD    -> (io.op1 + io.op2),
+     SUB    -> (io.op1 - io.op2),
+     ...
+     )
+       
+   io.aluResult := MuxLookup(0.U(32.W), io.aluOp, ALUopMap)
+   #+END_SRC
+   
+   Step 6:
+   Your MEM stage does very little when an ADD instruction is executed, so implementing it should 
+   be easy
+   
+   Step 7:
+   You now need to actually write the result back to your register bank. 
+   This should be handled at the CPU level.
+   If you sketched your processor already you probably made sure to keep track of the control 
+   signals for the instruction currently in WB, so writing to the correct register address should
+   be easy for you ;)
+   
+   Step 8:
+   Ensure that the simplest add test works, give yourself a pat on the back, you've just found the
+   corner pieces of the puzzle, so filling in the rest is "simply" being methodical.

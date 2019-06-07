@@ -1,0 +1,37 @@
+main:
+  addi	x1, zero, 1
+  addi	x2, zero, -1
+  addi	x3, zero, 3
+  addi	x4, zero, 7
+  addi	x5, zero, 14
+  addi	x6, zero, 28
+  addi	x7, zero, 56
+  addi	x8, zero, 133
+  addi	x9, zero, 258
+  addi	x10, x1, -231
+  addi	x11, x1, -510
+  slti	x12, x1, 1
+  slti	x12, x1, 10
+  slti	x12, x1, -10
+  sltiu x13, x1, 1
+  sltiu x13, x1, 10
+  sltiu x13, x1, -10
+  slti	x12, x2, 1
+  slti	x12, x2, 10
+  slti	x12, x2, -10
+  sltiu x13, x2, 1
+  sltiu x13, x2, 10
+  sltiu x13, x2, -10
+  slli	x14, x1, 16
+  slli	x14, x2, 16
+  srai	x14, x1, 16
+  srai	x14, x2, 16
+  srli	x14, x1, 16
+  srli	x14, x2, 16
+  andi  x15, x8, 3
+  andi  x15, x9, -1
+  ori   x15, x8, 3
+  ori   x15, x9, -1
+  xori  x15, x8, 3
+  xori  x15, x9, -1
+  done

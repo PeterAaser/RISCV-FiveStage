@@ -1,0 +1,49 @@
+* Tasks
+** DONE File IO and test
+** DONE Stop exploding the heap with logs :DDD
+** DONE Fix DONE instruction for VM termination
+*** DONE Add setting instructions
+** DONE Add assembler
+** DONE Chisel tester
+** DONE Add LF
+** DONE Redo colors in fansi. ANSI fucks up string formatting
+** DONE Columnize log events
+** DONE Chisel test log evaluator
+** DONE Create giftWrapper script
+** DONE Better sourceinfo stuff
+   Good enough
+
+** DONE Test options
+*** DONE How much NOP pad?
+*** DONE Verbosity?
+*** DONE Which tests?
+** DONE ish Step counter, pretty print VM log, including final memory state
+** TODO More programs
+*** DONE Real programs
+*** TODO Basic programs
+    Needs more
+** DONE Merge in LF changes
+
+** TODO Breakpoints
+*** TODO VM breakpoints
+**** TODO Record breakpoints in chisel tester
+*** TODO Chisel breakpoints
+**** TODO Freeze processor to record state
+**** TODO Record breakpoints in chisel tester
+*** TODO Draw breakpoints in the printer
+** TODO Calculate steps needed
+** TODO Unmangle derailed traces
+   With incorrect designs the trace printer ends up printing a lot of diveregent 
+   unsychnronizable blocks
+** DONE Fix DONE instruction
+*** DONE Parse error
+*** DONE Use DONE address
+** DONE Hazard generator
+   good enough
+
+* Maybe
+** DONE Move instruction recording to IMEM rather than IF?
+   Only care about what IF gets, won't have to deal with whatever logic is in IF.
+** DONE Figure out why loading instructions backwards made shit werk
+   Not as funny as you'd think. The issue was overwriting the last written instruction with 0
+
