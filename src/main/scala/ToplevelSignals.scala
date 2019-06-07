@@ -103,3 +103,21 @@ object ImmFormat {
   val SHAMT  = 5.asUInt(3.W)
   val DC     = 0.asUInt(3.W)
 }
+
+
+object ALUOps {
+  val ADD    = 0.U(4.W)
+  val SUB    = 1.U(4.W)
+  val AND    = 2.U(4.W)
+  val OR     = 3.U(4.W)
+  val XOR    = 4.U(4.W)
+  val SLT    = 5.U(4.W)
+  val SLL    = 6.U(4.W)
+  val SLTU   = 7.U(4.W)
+  val SRL    = 8.U(4.W)
+  val SRA    = 9.U(4.W)
+  val COPY_A = 10.U(4.W)
+  val COPY_B = 11.U(4.W)
+
+  val DC     = 15.U(4.W)
+}

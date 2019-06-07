@@ -23,7 +23,6 @@
 *** TODO Basic programs
     Needs more
 ** DONE Merge in LF changes
-
 ** TODO Breakpoints
 *** TODO VM breakpoints
 **** TODO Record breakpoints in chisel tester
@@ -40,7 +39,16 @@
 *** DONE Use DONE address
 ** DONE Hazard generator
    good enough
+** TODO Semantic logging
+   Currently logging is quite awkward, a combination of fansi and regular strings.
+   Ideally a markdown format such as HTML should be used. There are already plenty
+   good scala libraries for this, such as liyaohi's stuff (big shoutout!)
 
+** TODO Interactive stepping
+   This one is a pretty big undertaking, but it could be very useful to run the circuit in an interactiv
+   environment.
+   https://venus.cs61c.org/ is a good example of how useful this can be for a virtual machine.
+   This task requires pretty good understanding of chisel.
 * Maybe
 ** DONE Move instruction recording to IMEM rather than IF?
    Only care about what IF gets, won't have to deal with whatever logic is in IF.

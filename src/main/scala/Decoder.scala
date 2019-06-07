@@ -40,7 +40,7 @@ class Decoder() extends Module {
     * The reason for this is that it serves as convenient sugar to make maps.
     * 
     * This doesn't matter to you, just fill in the blanks in the style currently
-    * used, I just want to demystify some of the magic.
+    * used, I just want to demystify some of the scala magic.
     * 
     * `a -> b` == `(a, b)` == `Tuple2(a, b)`
     */

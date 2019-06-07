@@ -1,0 +1,58 @@
+This is the coursework for the graded part of the TDT4255 course at NTNU.
+
+* Instructions
+  To get started with designing your 5-stage RISC-V pipeline you should follow the
+  [[./exercise.org][Exercise instructions]]
+  
+* About
+  Since much of the tooling for HW design is rather difficult to work with this skeleton comes
+  with a lot of reinvented wheels which should make inspecting what is really going on a little
+  clearer.
+  
+  The FiveStage suite works in the following way:
+  
+** Parsing a test
+   The [[./src/test/scala/RISCV/Parser.scala][Parser]] parses an assembly test found in the test resource directory.
+   The resulting program can then be loaded on to a VM, or assembled into machine code.
+
+** Interpreting the test
+   Next the parsed assembly code is run on a virtual machine.
+   Relevant information is then compiled in an execution trace log which shows which instruction was
+   performed at a given step and what the resulting state was.
+
+** Preparing your circuit
+   Next up the chisel design is synthesized into a circuit emulator.
+   The (relatively seamless) test harness provided for your circuit is then used in order to preload
+   the instruction memory with the assembled machinecode, as well as test defined initial memory and
+   register configurations.
+
+** Running your circuit
+   As with the VM, your circuit will leave an extensive log which is parsed and used to verify the
+   correctness of your design
+
+** Checking the result
+   If your processor performed the same updates to registers and memory, and terminated at the same
+   address the test is successful.
+   
+** Debugging a failed test
+   When a test fails, (or if you have enabled verbose logging) a side by side execution log is shown, 
+   allowing you to pinpoint exactly how your processor went wrong.
+   
+* Intended use
+  This coursework is intended to be used!
+  If you are a tutor currently teaching computer architecture you may freely use this project, but
+  I would be very grateful if you provided me with feedback. Pull requests always welcome!
+  
+* Contributing
+  Considering the very significant amount of work saved on making your own coursework, you could
+  maybe help adding features.
+  Take a look at [[./TODO.org][the TODO file]] (does not render well in github) to get an idea of nice features to 
+  have, or add different features altogether!
+  
+  Additionally, if you write your own tests, please send a pull request! The more tests the better!
+
+* Solution
+  This is a graded coursework, so I would prefer that if you fork this project you keep the solution
+  private.
+  If you want access to the solution please send me a message verifying that you are a tutor and I
+  will make it available to you.
