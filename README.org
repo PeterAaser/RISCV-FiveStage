@@ -3,6 +3,9 @@ Best viewed in emacs org mode.
 This is the coursework for the graded part of the TDT4255 course at NTNU.
 
 * Instructions
+
+  #+ATTR_HTML: title="Join the chat at https://gitter.im/RISCV-FiveStage/community"
+  [[https://gitter.im/RISCV-FiveStage/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge][file:https://badges.gitter.im/RISCV-FiveStage/community.svg]]
   To get started with designing your 5-stage RISC-V pipeline you should follow the
   [[./exercise.org][Exercise instructions]]
   
