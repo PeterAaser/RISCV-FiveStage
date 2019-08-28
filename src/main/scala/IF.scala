@@ -49,11 +49,18 @@ class InstructionFetch extends MultiIOModule {
 
 
   /**
-    * Setup. You should not change this code
+    * Setup.
+    * 
+    * When you have added an instruction signal to this module you
+    * should ensure that it is set to NOP during program loading.
+    * 
+    * If not you will end up issuing instructions during program load
+    * which will start executing before memory, registers and programs
+    * are fully loaded.
     */
   when(testHarness.IMEMsetup.setup) {
     PC := 0.U
-    // TODO: You must set the instruction to Instruction.NOP here.
-    // throw new Exception("Just making sure you're seeing the line above")
+    // TODO: You should probably set the instruction to Instruction.NOP here.
+    throw new Exception("Just making sure you're seeing the line above.\nYou can delete this exception now, it's found at line 64 at IF.scala")
   }
 }
