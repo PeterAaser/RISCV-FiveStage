@@ -247,7 +247,8 @@
       ...
       )
 
-    io.aluResult := MuxLookup(0.U(32.W), io.aluOp, ALUopMap)
+    // MuxLookup API: https://github.com/freechipsproject/chisel3/wiki/Muxes-and-Input-Selection#muxlookup
+    io.aluResult := MuxLookup(io.aluOp, 0.U(32.W), ALUopMap)
     #+END_SRC
 
 *** Step 6:
