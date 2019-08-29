@@ -89,7 +89,7 @@ object Parser {
     stringWs("srai")   ~> arithImm.mapN{ArithImm.sra},
    
     stringWs("slti")   ~> arithImm.mapN{ArithImm.slt},
-    stringWs("sltui")  ~> arithImm.mapN{ArithImm.sltu},
+    stringWs("sltiu")  ~> arithImm.mapN{ArithImm.sltu},
 
     // pseudos
     stringWs("not")   ~> (reg <~ sep, reg, ok(-1)).mapN{ArithImm.xor},
