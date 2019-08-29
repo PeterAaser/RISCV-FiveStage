@@ -46,8 +46,6 @@ val defaultVersions = Map(
 libraryDependencies ++= (Seq("chisel3","chisel-iotesters").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) })
 
-val versionOfScala = "2.12.4"
-
 val fs2Version = "0.10.3"
 val catsVersion = "1.1.0"
 val catsEffectVersion = "0.10"
