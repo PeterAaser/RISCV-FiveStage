@@ -125,12 +125,17 @@ object assembler {
   }
 
   /**
-    * Currently not used, thus we allow too larg shifts.
+    * Used by SRI, SRAI, SLLI
     */
-  def setShiftTypeImmediate(instruction: Int, immediate: Int): Int = {
-    val points = List((24, 5))
-    val withField = applyImmediate(5, immediate, points)(instruction)
-    withField
+  def setShiftTypeImmediate(funct7: Int, shamt: Int, addr: Addr): Int => InstructionFragment = {
+    val shamtPoints = List((24, 5))
+    val funct7Points = List((31, 6))
+
+    base => {
+      val withF7 = applyImmediateU(funct7, funct7Points, addr)(base)
+      val withShamt = withF7.flatMap(base2 => applyImmediateU(shamt, shamtPoints, addr)(base2))
+      withShamt
+    }
   }
 
   def setOpCode(opcode: Int): Int => Int = setField(0, 7, opcode)
@@ -142,16 +147,17 @@ object assembler {
 
 
   def setOpCode(op: Op): Int => Int = op match {
-    case x: Branch   => setOpCode("1100011".binary)
-    case x: Arith    => setOpCode("0110011".binary)
-    case x: ArithImm => setOpCode("0010011".binary)
-    case x: LW       => setOpCode("0000011".binary)
-    case x: SW       => setOpCode("0100011".binary)
-    case x: JALR     => setOpCode("1100111".binary)
-    case x: JAL      => setOpCode("1101111".binary)
-    case x: AUIPC    => setOpCode("0110111".binary)
-    case x: LUI      => setOpCode("0010111".binary)
-    case DONE        => setOpCode("0010011".binary) // done is turned into a NOP in the assembler.
+    case x: Branch        => setOpCode("1100011".binary)
+    case x: Arith         => setOpCode("0110011".binary)
+    case x: ArithImm      => setOpCode("0010011".binary)
+    case x: ArithImmShift => setOpCode("0010011".binary)
+    case x: LW            => setOpCode("0000011".binary)
+    case x: SW            => setOpCode("0100011".binary)
+    case x: JALR          => setOpCode("1100111".binary)
+    case x: JAL           => setOpCode("1101111".binary)
+    case x: AUIPC         => setOpCode("0110111".binary)
+    case x: LUI           => setOpCode("0010111".binary)
+    case DONE             => setOpCode("0010011".binary) // done is turned into a NOP in the assembler.
   }
 
   def setComparisonFunct(cmp: Comparison): Int => Int = cmp match {
@@ -195,7 +201,6 @@ object assembler {
       setRs1(op.rs1.value)
 
     def assembleSType(op: SType): Int => Int = {
-      // say("stype")
       instruction =>
       (setRs1(op.rs1.value) andThen
       setRs2(op.rs2.value))(instruction)
@@ -214,16 +219,17 @@ object assembler {
 
 
   def assembleImmediate(op: Op, addr: Addr, labelMap: Map[Label, Addr]): Int => Either[(String, Addr), Int] = op match {
-    case DONE         => instruction => Right(instruction)
-    case op: Arith    => instruction => Right(instruction)
-    case op: ArithImm => setItypeImmediate(op.imm.value, addr)
-    case op: Branch   => setBranchDestination(labelMap, op, addr)
-    case op: JALR     => instruction => labelMap.lift(op.dst).toRight(s"label ${op.dst} not found", addr).flatMap(addr => setItypeImmediate(addr.value, addr)(instruction))
-    case op: AUIPC    => setUtypeImmediate(op.imm.value, addr)
-    case op: LUI      => setUtypeImmediate(op.imm.value, addr)
-    case op: LW       => setItypeImmediate(op.offset.value, addr)
-    case op: SW       => setStypeImmediate(op.offset.value, addr)
-    case op: JAL      => instruction => {
+    case DONE              => instruction => Right(instruction)
+    case op: Arith         => instruction => Right(instruction)
+    case op: ArithImm      => setItypeImmediate(op.imm.value, addr)
+    case op: ArithImmShift => setShiftTypeImmediate(op.imm11.value, op.shamt.value, addr)
+    case op: Branch        => setBranchDestination(labelMap, op, addr)
+    case op: JALR          => instruction => labelMap.lift(op.dst).toRight(s"label ${op.dst} not found", addr).flatMap(addr => setItypeImmediate(addr.value, addr)(instruction))
+    case op: AUIPC         => setUtypeImmediate(op.imm.value, addr)
+    case op: LUI           => setUtypeImmediate(op.imm.value, addr)
+    case op: LW            => setItypeImmediate(op.offset.value, addr)
+    case op: SW            => setStypeImmediate(op.offset.value, addr)
+    case op: JAL           => instruction => {
       val addressDistance = labelMap
         .lift(op.dst).toRight(s"label ${op.dst} not found", addr)
         .map(absoluteAddr => absoluteAddr - addr)

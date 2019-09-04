@@ -136,9 +136,9 @@ object TestUtils {
         (s"ori ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.or(rd, rs1,  imm)),
         (s"xori ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.xor(rd, rs1, imm)),
         (s"andi ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.and(rd, rs1, imm)),
-        (s"slli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImm.sll(rd, rs1, shift)),
-        (s"srli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImm.srl(rd, rs1, shift)),
-        (s"srai ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImm.sra(rd, rs1, shift)),
+        (s"slli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImmShift.sll(rd, rs1, shift % 32)),
+        (s"srli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImmShift.srl(rd, rs1, shift % 32)),
+        (s"srai ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImmShift.sra(rd, rs1, shift % 32)),
         (s"slti ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.slt(rd, rs1, imm)),
         (s"sltiu ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.sltu(rd, rs1, imm)))
       (rd, choices.shuffle(r).head)

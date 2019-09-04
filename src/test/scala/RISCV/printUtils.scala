@@ -81,16 +81,17 @@ object PrintUtils {
   val UNKNOWN = "UNKNOWN"
 
   def printInstruction(op: Ops.Op, labelMap: Map[Label, Addr]): fansi.Str = op match {
-    case op: Branch   => fansi.Color.Red(s"B${op.comp}\t${op.rs1.show}, ${op.rs2.show}, ${op.dst.show}\t[${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
-    case op: Arith    => s"${op.op}\t${op.rd.show}, ${op.rs1.show}, ${op.rs2.show}"
-    case op: ArithImm => s"${op.op}I\t${op.rd.show}, ${op.rs1.show}, ${op.imm.show}"
-    case op: JALR     => fansi.Color.Green(s"JALR\t${op.rd.show}, ${op.rs1.show}, ${op.dst.show}\t[${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
-    case op: JAL      => fansi.Color.Magenta(s"JAL\t${op.rd.show}, ${op.dst.show} [${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
-    case op: LW       => s"LW\t${op.rd.show}, ${op.offset.show}(${op.rs1.show})"
-    case op: SW       => s"SW\t${op.rs2.show}, ${op.offset.show}(${op.rs1.show})"
-    case op: LUI      => s"LUI\t${op.rd.show}, ${op.imm.show}"
-    case op: AUIPC    => s"AUIPC\t${op.rd.show}, ${op.imm.show}"
-    case DONE         => s"DONE"
+    case op: Branch        => fansi.Color.Red(s"B${op.comp}\t${op.rs1.show}, ${op.rs2.show}, ${op.dst.show}\t[${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
+    case op: Arith         => s"${op.op}\t${op.rd.show}, ${op.rs1.show}, ${op.rs2.show}"
+    case op: ArithImm      => s"${op.op}I\t${op.rd.show}, ${op.rs1.show}, ${op.imm.show}"
+    case op: ArithImmShift => s"${op.op}I\t${op.rd.show}, ${op.rs1.show}, ${op.shamt.show}"
+    case op: JALR          => fansi.Color.Green(s"JALR\t${op.rd.show}, ${op.rs1.show}, ${op.dst.show}\t[${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
+    case op: JAL           => fansi.Color.Magenta(s"JAL\t${op.rd.show}, ${op.dst.show} [${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
+    case op: LW            => s"LW\t${op.rd.show}, ${op.offset.show}(${op.rs1.show})"
+    case op: SW            => s"SW\t${op.rs2.show}, ${op.offset.show}(${op.rs1.show})"
+    case op: LUI           => s"LUI\t${op.rd.show}, ${op.imm.show}"
+    case op: AUIPC         => s"AUIPC\t${op.rd.show}, ${op.imm.show}"
+    case DONE              => s"DONE"
   }
 
 

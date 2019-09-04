@@ -93,14 +93,17 @@ object Ops {
     def or(  rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), OR)
     def xor( rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), XOR)
     def and( rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), AND)
-    def sll( rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), SLL)
-    def srl( rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), SRL)
-    def sra( rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), SRA)
     def slt( rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), SLT)
     def sltu(rd: Int, rs1: Int, imm: Int) = ArithImm(Reg(rd), Reg(rs1), Imm(imm), SLTU)
     def nop = add(0, 0, 0)
   }
 
+  case class ArithImmShift(imm11: Imm, rd: Reg, rs1: Reg, shamt: Imm, op: ArithOp) extends Op with IType
+  object ArithImmShift {
+    def sll( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Imm(0), Reg(rd), Reg(rs1), Imm(imm), SLL)
+    def srl( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Imm(0), Reg(rd), Reg(rs1), Imm(imm), SRL)
+    def sra( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Imm(32), Reg(rd), Reg(rs1), Imm(imm), SRA)
+  }
 
   case class LUI(rd: Reg, imm: Imm)              extends Op with UType
   case class AUIPC(rd: Reg, imm: Imm)            extends Op with UType

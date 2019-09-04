@@ -84,9 +84,9 @@ object Parser {
     stringWs("xori")   ~> arithImm.mapN{ArithImm.xor},
     stringWs("andi")   ~> arithImm.mapN{ArithImm.and},
     
-    stringWs("slli")   ~> arithImm.mapN{ArithImm.sll},
-    stringWs("srli")   ~> arithImm.mapN{ArithImm.srl},
-    stringWs("srai")   ~> arithImm.mapN{ArithImm.sra},
+    stringWs("slli")   ~> arithImm.mapN{ArithImmShift.sll},
+    stringWs("srli")   ~> arithImm.mapN{ArithImmShift.srl},
+    stringWs("srai")   ~> arithImm.mapN{ArithImmShift.sra},
    
     stringWs("slti")   ~> arithImm.mapN{ArithImm.slt},
     stringWs("sltiu")  ~> arithImm.mapN{ArithImm.sltu},
@@ -160,16 +160,16 @@ object Parser {
           SW(placeHolder, 0, 2048),
           LW(placeHolder, rs1.value, (offset & 0xFFFFFF1C)),
           LW(rd.value, rs1.value, (offset & 0xFFFFFF1C) + 4),
-          ArithImm.sra(placeHolder, placeHolder, 24),
-          ArithImm.sll(rd.value, rd.value, 24),
-          ArithImm.sra(rd.value, rd.value, 16),
+          ArithImmShift.sra(placeHolder, placeHolder, 24),
+          ArithImmShift.sll(rd.value, rd.value, 24),
+          ArithImmShift.sra(rd.value, rd.value, 16),
           Arith.add(rd, rd, placeHolder),
           LW(placeHolder, 0, 2048)).reverse
       }
       case (rd, offset, rs1) if (offset % 4 == 2) => {
         List(
           LW(rd, rs1, (offset & 0xFFFFFF1C)),
-          ArithImm.sra(rd, rd, 16)
+          ArithImmShift.sra(rd, rd, 16)
         ).reverse
       }
 
@@ -177,8 +177,8 @@ object Parser {
         val leftShift = if((offset % 4) == 0) 16 else 8
         List(
           LW(rd, rs1, (offset & 0xFFFFFF1C)),
-          ArithImm.sll(rd, rd, leftShift),
-          ArithImm.sra(rd, rd, 16),
+          ArithImmShift.sll(rd, rd, leftShift),
+          ArithImmShift.sra(rd, rd, 16),
         ).reverse
       }
     }.map(_.widen[Op]),

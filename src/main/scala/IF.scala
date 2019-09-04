@@ -61,6 +61,6 @@ class InstructionFetch extends MultiIOModule {
   when(testHarness.IMEMsetup.setup) {
     PC := 0.U
     // TODO: You should probably set the instruction to Instruction.NOP here.
-    throw new Exception("Just making sure you're seeing the line above.\nYou can delete this exception now, it's found at line 64 at IF.scala")
+    // throw new Exception("Just making sure you're seeing the line above.\nYou can delete this exception now, it's found at line 64 at IF.scala")
   }
 }

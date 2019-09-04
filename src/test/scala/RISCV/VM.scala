@@ -23,16 +23,17 @@ case class VM(
   def stepInstruction: Either[Finished, ExecutionTrace[VM]] = {
     if (pc.value == 0xEB1CEB1C) Left(Success)
     else getOp flatMap {
-      case op: Branch   => executeBranch(op)
-      case op: Arith    => executeArith(op)
-      case op: ArithImm => executeArithImm(op)
-      case op: AUIPC    => executeAUIPC(op)
-      case op: LUI      => executeLUI(op)
-      case op: JALR     => executeJALR(op)
-      case op: JAL      => executeJAL(op)
-      case op: LW       => executeLW(op)
-      case op: SW       => executeSW(op)
-      case DONE         => Left(Success)
+      case op: Branch        => executeBranch(op)
+      case op: Arith         => executeArith(op)
+      case op: ArithImm      => executeArithImm(op)
+      case op: ArithImmShift => executeArithImmShift(op)
+      case op: AUIPC         => executeAUIPC(op)
+      case op: LUI           => executeLUI(op)
+      case op: JALR          => executeJALR(op)
+      case op: JAL           => executeJAL(op)
+      case op: LW            => executeLW(op)
+      case op: SW            => executeSW(op)
+      case DONE              => Left(Success)
     }
   }
 
@@ -70,6 +71,13 @@ case class VM(
 
   private def executeArithImm(op: ArithImm) = {
     val (regUpdate, nextRegs) = regs.arithImm(op.rd, op.rs1, op.imm, op.op.run)
+    val nextVM = this.copy(regs = nextRegs)
+    Right(step(nextVM, regUpdate.toList:_*))
+  }
+
+
+  private def executeArithImmShift(op: ArithImmShift) = {
+    val (regUpdate, nextRegs) = regs.arithImm(op.rd, op.rs1, op.shamt, op.op.run)
     val nextVM = this.copy(regs = nextRegs)
     Right(step(nextVM, regUpdate.toList:_*))
   }
