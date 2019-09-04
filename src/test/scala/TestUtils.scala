@@ -75,7 +75,7 @@ object TestUtils {
 
         val entry = hasLeft + (leftIndex << 1) + (hasRight << 8) + (rightIndex << 9) + (root.value  << 16)
 
-        say(s"with leftIndex: ${leftIndex.hs}, rightIndex: ${rightIndex.hs}, value: ${root.value.hs} we got ${entry.hs}")
+        // say(s"with leftIndex: ${leftIndex.hs}, rightIndex: ${rightIndex.hs}, value: ${root.value.hs} we got ${entry.hs}")
 
         entry :: foldAnno(root.left) ::: foldAnno(root.right)
       }.getOrElse(Nil)
@@ -98,8 +98,8 @@ object TestUtils {
    */
   def generateHazardsForward(steps: Int) : Unit = {
 
-    // val r = new scala.util.Random(0xF01D1EF7)
-    val r = new scala.util.Random(0xF01D1EF8)
+    val r = new scala.util.Random(0xF01D1EF7)
+    // val r = new scala.util.Random(0xF01D1EF8)
     import Ops._
 
     val active = List(1, 2, 3)
@@ -136,9 +136,9 @@ object TestUtils {
         (s"ori ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.or(rd, rs1,  imm)),
         (s"xori ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.xor(rd, rs1, imm)),
         (s"andi ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.and(rd, rs1, imm)),
-        (s"slli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImmShift.sll(rd, rs1, shift % 32)),
-        (s"srli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImmShift.srl(rd, rs1, shift % 32)),
-        (s"srai ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(shift).show}", ArithImmShift.sra(rd, rs1, shift % 32)),
+        (s"slli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(math.abs(shift).toInt % 32).show}", ArithImmShift.sll(rd, rs1, math.abs(shift).toInt % 32)),
+        (s"srli ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(math.abs(shift).toInt % 32).show}", ArithImmShift.srl(rd, rs1, math.abs(shift).toInt % 32)),
+        (s"srai ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(math.abs(shift).toInt % 32).show}", ArithImmShift.sra(rd, rs1, math.abs(shift).toInt % 32)),
         (s"slti ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.slt(rd, rs1, imm)),
         (s"sltiu ${Reg(rd).show}, ${Reg(rs1).show}, ${Imm(imm).show}", ArithImm.sltu(rd, rs1, imm)))
       (rd, choices.shuffle(r).head)
