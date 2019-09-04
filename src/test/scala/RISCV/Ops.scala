@@ -98,11 +98,11 @@ object Ops {
     def nop = add(0, 0, 0)
   }
 
-  case class ArithImmShift(imm11: Imm, rd: Reg, rs1: Reg, shamt: Imm, op: ArithOp) extends Op with IType
+  case class ArithImmShift(rd: Reg, rs1: Reg, shamt: Imm, op: ArithOp) extends Op with IType
   object ArithImmShift {
-    def sll( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Imm(0), Reg(rd), Reg(rs1), Imm(imm), SLL)
-    def srl( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Imm(0), Reg(rd), Reg(rs1), Imm(imm), SRL)
-    def sra( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Imm(32), Reg(rd), Reg(rs1), Imm(imm), SRA)
+    def sll( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Reg(rd), Reg(rs1), Imm(imm), SLL)
+    def srl( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Reg(rd), Reg(rs1), Imm(imm), SRL)
+    def sra( rd: Int, rs1: Int, imm: Int) = ArithImmShift(Reg(rd), Reg(rs1), Imm(imm), SRA)
   }
 
   case class LUI(rd: Reg, imm: Imm)              extends Op with UType

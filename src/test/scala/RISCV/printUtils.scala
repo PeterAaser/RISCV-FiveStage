@@ -119,7 +119,7 @@ object PrintUtils {
 
 
   def printBinary(bin: Map[Addr, Int]): String = {
-    bin.toList.sortBy(_._1.value).map{ case(addr, op) => s"$addr: ${op.hs}" }.mkString("\n","\n","\n")
+    bin.toList.sortBy(_._1.value).map{ case(addr, op) => s"$addr: ${op.hs}\t--\t${op.binary}" }.mkString("\n","\n","\n")
   }
 
 

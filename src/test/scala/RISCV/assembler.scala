@@ -127,15 +127,9 @@ object assembler {
   /**
     * Used by SRI, SRAI, SLLI
     */
-  def setShiftTypeImmediate(funct7: Int, shamt: Int, addr: Addr): Int => InstructionFragment = {
-    val shamtPoints = List((24, 5))
-    val funct7Points = List((31, 6))
-
-    base => {
-      val withF7 = applyImmediateU(funct7, funct7Points, addr)(base)
-      val withShamt = withF7.flatMap(base2 => applyImmediateU(shamt, shamtPoints, addr)(base2))
-      withShamt
-    }
+  def setShiftTypeImmediate(shamt: Int, addr: Addr): Int => InstructionFragment = {
+    val points = List((24, 5))
+    applyImmediateU(shamt, points, addr)
   }
 
   def setOpCode(opcode: Int): Int => Int = setField(0, 7, opcode)
@@ -222,7 +216,7 @@ object assembler {
     case DONE              => instruction => Right(instruction)
     case op: Arith         => instruction => Right(instruction)
     case op: ArithImm      => setItypeImmediate(op.imm.value, addr)
-    case op: ArithImmShift => setShiftTypeImmediate(op.imm11.value, op.shamt.value, addr)
+    case op: ArithImmShift => setShiftTypeImmediate(op.shamt.value, addr)
     case op: Branch        => setBranchDestination(labelMap, op, addr)
     case op: JALR          => instruction => labelMap.lift(op.dst).toRight(s"label ${op.dst} not found", addr).flatMap(addr => setItypeImmediate(addr.value, addr)(instruction))
     case op: AUIPC         => setUtypeImmediate(op.imm.value, addr)
@@ -252,14 +246,18 @@ object assembler {
     val opcode    = setOpCode(op)
 
     val extras: Int => Int = (instruction: Int) => op match {
-      case op: Branch   => setComparisonFunct(op.comp)(instruction)
-      case op: ArithImm => setArithFunct(op.op)(instruction)
-      case op: Arith    => setArithFunct(op.op)(instruction)
-      case op: JALR     => setFunct3("000".binary)(instruction)
-      case op: LW       => setFunct3("010".binary)(instruction)
-      case op: SW       => setFunct3("010".binary)(instruction)
-      case DONE         => (setFunct3("000".binary) andThen setFunct7("0000000".binary))(instruction)
-      case _            => instruction
+      case op: Branch        => setComparisonFunct(op.comp)(instruction)
+      case op: ArithImm      => setArithFunct(op.op)(instruction)
+      case op: ArithImmShift => setArithFunct(op.op)(instruction)
+      case op: Arith         => setArithFunct(op.op)(instruction)
+      case op: JALR          => setFunct3("000".binary)(instruction)
+      case op: LW            => setFunct3("010".binary)(instruction)
+      case op: SW            => setFunct3("010".binary)(instruction)
+      case DONE              => (setFunct3("000".binary) andThen setFunct7("0000000".binary))(instruction)
+
+      case op: AUIPC         => instruction
+      case op: JAL           => instruction
+      case op: LUI           => instruction
     }
 
     val withOp = opcode(0)
