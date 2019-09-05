@@ -8,7 +8,7 @@ class InstructionFetch extends MultiIOModule {
   val testHarness = IO(
     new Bundle {
       val IMEMsetup = Input(new IMEMsetupSignals)
-      val PC = Output(UInt())
+      val PC        = Output(UInt())
     }
   )
 
@@ -46,21 +46,11 @@ class InstructionFetch extends MultiIOModule {
   instruction := IMEM.io.instruction.asTypeOf(new Instruction)
 
 
-
-
   /**
-    * Setup.
-    * 
-    * When you have added an instruction signal to this module you
-    * should ensure that it is set to NOP during program loading.
-    * 
-    * If not you will end up issuing instructions during program load
-    * which will start executing before memory, registers and programs
-    * are fully loaded.
+    * Setup. You should not change this code.
     */
   when(testHarness.IMEMsetup.setup) {
     PC := 0.U
-    // TODO: You should probably set the instruction to Instruction.NOP here.
-    // throw new Exception("Just making sure you're seeing the line above.\nYou can delete this exception now, it's found at line 64 at IF.scala")
+    instruction := Instruction.NOP
   }
 }

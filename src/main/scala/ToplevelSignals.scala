@@ -22,14 +22,17 @@ class Instruction extends Bundle(){
   def immediateJType = Cat(instruction(31), instruction(19, 12), instruction(20), instruction(30, 25), instruction(24, 21), 0.U(1.W)).asSInt
   def immediateZType = instruction(19, 15).zext
 
+  def bubble(): Instruction = {
+    val bubbled = Wire(new Instruction)
+    bubbled.instruction := instruction
+    bubbled.instruction(6, 0) := BitPat.bitPatToUInt(BitPat("b0010011"))
+    bubbled
+  }
 }
 object Instruction {
-  def bubble(i: Instruction) =
-    i.opcode := BitPat.bitPatToUInt(BitPat("b0010011"))
-
-  def default: Instruction = {
+  def NOP: Instruction = {
     val w = Wire(new Instruction)
-    w.instruction := 0.U
+    w.instruction := BitPat.bitPatToUInt(BitPat("b00000000000000000000000000010011"))
     w
   }
 }
