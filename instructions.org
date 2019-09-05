@@ -2,6 +2,8 @@
 4.2. Register-Register Arithmetic Instructions
 --------------------------------------------------------------------------
 
+These do not render well on github, try using your text editor.
+
 * ADD
 
  - Summary   : Addition with 3 GPRs, no overflow exception

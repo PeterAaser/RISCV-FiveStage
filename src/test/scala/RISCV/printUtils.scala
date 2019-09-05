@@ -347,7 +347,8 @@ object PrintUtils {
 
   def printLogSideBySide(trace: List[ExecutionTraceEvent], chiselTrace: List[CircuitTrace], program: Program): String = {
     import LogParser._
+    val header = "ADDRESS   --   VM UPDATES                                                ---      DEVICE UNDER TEST UPDATES                     ---    CORRESPONDING SOURCE LINE\n"
     val traces = mergeTraces(trace, chiselTrace).map(x => printMergedTraces((x), program))
-    traces.map(_.mkString("\n")).mkString("\n", "\n--------------------------------------------------------------------------+------------------------------------------------------+-------------------------------\n", "\n")
+    "\n" + header + (traces.map(_.mkString("\n")).mkString("\n", "\n--------------------------------------------------------------------------+------------------------------------------------------+-------------------------------\n", "\n"))
   }
 }
