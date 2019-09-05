@@ -8,12 +8,22 @@
   This is done by inserting 4 NOP instructions inbetween each source instruction,
   enabling us to use the same tests for both exercise 1 and 2.
 
-   
   In the project skeleton files ([[./src/main/scala/][Found here]]) you can see that a lot of code has
-  already been provided.
+  already been provided, which can make it difficult to get started.
+  Hopefully this document can help clear up at least some of the confusion.
+  First an overview of what you are designing is presented, followed by a walk-through
+  for getting the most basic instructions to work.
   
-  Before going further it is useful to get an overview of what is provided out
-  of the box.
+  In order to orient yourself you first need a map, thus a high level overview of the 
+  processor you're going to design is showed underneath:
+  Keep in mind that this is just a high level sketch, omitting many details as well
+  entire features (for instance branch logic)
+
+  #+CAPTION: A very high level processor schematic. Registers, Instruction and data memory are already implemented.
+  [[./Images/FiveStage.png]]
+  
+  Now that you have an idea of what you're building it is time to take inventory of
+  the files included in the skeleton, and what, if anything should be added.
 
   + [[./src/main/scala/Tile.scala]]
     This is the top level module for the system as a whole. This is where the test
@@ -26,7 +36,11 @@
     should be declared and wired together.
     Some of these modules have already been declared in order to wire up the
     debugging logic for your test harness.
+    This file corresponds to the high-level overview in its entirety.
     *This module is intended to be further fleshed out by you.*
+    As you work with this module, try keeping logic to a minimum to help readability.
+    If you end up with a lot of signal select logic, consider moving that to a separate
+    module.
     
   + [[./src/main/scala/IF.scala]]
     This is the instruction fetch stage.
@@ -94,10 +108,11 @@
    of these settings can be quite useful to alter.
    The main attraction is the test options. By altering the verbosity settings you
    may change what is output.
-   The settings are
+   The settings are:
 
    + printIfSuccessful
-     Enables logging on tests that succeed
+     Enables logging on tests that succeed.
+     You typically want this turned off, at least for the full test runner.
 
    + printErrors
      Enables logging of errors. You obviously want this one on, at least on the single
@@ -147,6 +162,12 @@
    In your sketch you will eventually add a box for registers, IMEM and DMEM, which
    should make it clear how the already finished modules fit into the grander design,
    making the skeleton-code less mysterious.
+   
+   To give you an idea of how a drill down looks like, here is my sketch of the ID stage:
+   #+CAPTION: Instruction decode stage, showing the various signals.
+   [[./Images/IDstage.png]]
+   
+   I would generally advice to do these on paper, but don't half-ass them.
 
 
 ** Adding numbers
@@ -174,11 +195,11 @@
 
 **** Step ¾:
      In your console, type ~testOnly FiveStage.SingleTest~ to run only the tests that you
-     have defined in the [[./src/test/scala/Manifest.scala][test manifest]] (currently set to ~"forward2.s"~).
+     have defined in the [[./src/test/scala/Manifest.scala][test manifest]] (currently set to ~forward2.s~).
 
      As you will first implement addition you should change this to the [[./src/test/resources/tests/basic/immediate/addi.s][add immediate test]].
-     Luckily you do not have to deal with file paths, simply changing ~"forward2.s"~ to
-     ~"addi.s"~ suffices.
+     Luckily you do not have to deal with file paths, simply changing ~forward2.s~ to
+     ~addi.s~ suffices.
 
      Ensure that the addi test is run by repeating the ~testOnly FiveStage.SingleTest~
      command.
@@ -188,7 +209,7 @@
     In [[./src/test/main/IF.scala]] you can see that the IMEM module is already set to fetch
     the current program counter address (line 41), however since the current PC is stuck
     at 0 it will fetch the same instruction over and over. Rectify this by commenting in
-    ~// PC := PC + 4.U~ at line 43.
+    ~// PC := PC + 4.U~ at line 48.
     You can now verify that your design fetches new instructions each cycle by running
     the test as in the previous step.
 
@@ -207,10 +228,10 @@
     Next you need to ensure that the registers and decoder gets the relevant data from the
     instruction.
 
-    This is made more convenient by the fact that `Instruction` is a class, allowing you
+    This is made more convenient by the fact that ~Instruction~ is a class, allowing you
     to access methods defined on it.
-    Keep in mind that it is only a class at compile and synthesis time, it will be 
-    indistinguishable from a regular ~UIint(32.W)~ in your finished circuit.
+    Keep in mind that it is only a class during compile and build time, it will be 
+    indistinguishable from a regular ~UInt(32.W)~ in your finished circuit.
     The methods can be accessed like this:
     #+BEGIN_SRC scala
     // Drive funct6 of myModule with the 26th to 31st bit of instruction
@@ -221,7 +242,21 @@
     Your IF should now have an instruction as an OUTPUT, and your ID as an INPUT, however
     they are not connected. This must be done in the CPU class where both the ID and IF are
     instantiated.
-   
+    In the overview sketch you probably noticed the barriers between IF and ID.
+    In accordance with the overview, it is incorrect to directly connect the two modules,
+    instead you must connect them using a *barrier*.
+    A barrier is responsible for keeping a value inbetween cycles, facilitating pipelining.
+    There is however one complicating matter: It takes a cycle to get the instruction from the
+    instruction memory, thus we don't want to delay it in the barrier!
+    
+    In order to make code readable I suggest adding a new file for your barriers, containing
+    four different modules for the barriers your design will need.
+
+    Start with implementing your IF barrier module, which should contain the following:
+    + An input and output for PC where the output is delayed by a single cycle.
+    + An input and output for instruction where the output is wired directly to the input with
+      no delay.
+
 **** Step 4½:
      You should now verify that the correct control signals are produced. Using printf, ensure
      that:
@@ -250,10 +285,19 @@
     // MuxLookup API: https://github.com/freechipsproject/chisel3/wiki/Muxes-and-Input-Selection#muxlookup
     io.aluResult := MuxLookup(io.aluOp, 0.U(32.W), ALUopMap)
     #+END_SRC
+    
+    As with the ID stage, you will need a barrier between ID and EX stage.
+    In this case, as the overview sketch indicates, all values should be delayed one cycle.
+    
+    When you have finished the barrier, instantiate it and wire ID and EX together with the barrier in the 
+    same fashion as IF and ID.
 
 *** Step 6:
     Your MEM stage does very little when an ADDI instruction is executed, so implementing it should 
-    be easy. All you have to do is forward signals
+    be easy. All you have to do is forward signals.
+    
+    From the overview sketch you can see that the same trick used in the IF/ID barrier is utilized
+    here, bypassing the data memory read value since it is already delayed by a cycle.
 
 *** Step 7:
     You now need to actually write the result back to your register bank. 

@@ -14,7 +14,12 @@ class InstructionFetch extends MultiIOModule {
 
 
   /**
-    * TODO: Add signals for handling events such as jumps
+    * TODO: Add input signals for handling events such as jumps
+
+    * TODO: Add output signal for the instruction. 
+    * The instruction is of type Bundle, which means that you must
+    * use the same syntax used in the testHarness for IMEM setup signals
+    * further up.
     */
   val io = IO(
     new Bundle {
