@@ -256,9 +256,13 @@
     + An input and output for PC where the output is delayed by a single cycle.
     + An input and output for instruction where the output is wired directly to the input with
       no delay.
+      
+    The sketch for your barrier looks like this
+    #+CAPTION: The barrier between IF and ID. Note the passthrough for the instruction
+    [[./Images/IFID.png]]
 
 **** Step 4½:
-     You should now verify that the correct control signals are produced. Using printf, ensure
+     You can now verify that the correct control signals are produced. Using printf, ensure
      that:
      + The program counter is increasing in increments of 4
      + The instruction in ID is as expected
@@ -266,7 +270,8 @@
      + The correct operands are fetched from the registers
 
      Keep in mind that printf might not always be cycle accurate, the point is to ensure that
-     your processor design at least does something!
+     your processor design at least does something! In general it is better to use debug signals
+     and println, but for quick and dirty debugging printf is passable.
 
 *** Step 5:
     You will now have to create the EX stage. Use the structure of the IF and ID modules to
@@ -291,6 +296,8 @@
     
     When you have finished the barrier, instantiate it and wire ID and EX together with the barrier in the 
     same fashion as IF and ID.
+    You don't need to add every single signal for your barrier, rather you should add them as they
+    become needed.
 
 *** Step 6:
     Your MEM stage does very little when an ADDI instruction is executed, so implementing it should 
