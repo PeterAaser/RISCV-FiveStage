@@ -1,4 +1,4 @@
-* Exercise 1
+* Exercise description
   The task in this exercise is to implement a 5-stage pipelined processor for
   the [[./instructions.org][RISCV32I instruction set]].
   
@@ -6,7 +6,10 @@
   at a time, whereas in exercise 2 your design will handle multiple instructions
   at a time.
   This is done by inserting 4 NOP instructions inbetween each source instruction,
-  enabling us to use the same tests for both exercise 1 and 2.
+  enabling us to use the same tests and harness for both exercise 1 and 2.
+  
+  Once you are done with exercise 1, you can up the difficulty by setting nopPad
+  to false and start reading the [[exercise2.org][ex2 guide]].
 
   In the project skeleton files ([[./src/main/scala/][Found here]]) you can see that a lot of code has
   already been provided, which can make it difficult to get started.
