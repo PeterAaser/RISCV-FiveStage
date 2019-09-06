@@ -149,8 +149,8 @@ object assembler {
     case x: SW            => setOpCode("0100011".binary)
     case x: JALR          => setOpCode("1100111".binary)
     case x: JAL           => setOpCode("1101111".binary)
-    case x: AUIPC         => setOpCode("0110111".binary)
-    case x: LUI           => setOpCode("0010111".binary)
+    case x: AUIPC         => setOpCode("0010111".binary)
+    case x: LUI           => setOpCode("0110111".binary)
     case DONE             => setOpCode("0010011".binary) // done is turned into a NOP in the assembler.
   }
 
