@@ -158,12 +158,13 @@ object Data {
       rightShifted
     }
 
-    def splitLoHi(loBits: Int): (Int, Int) = {
-      val hiBits = 32 - loBits
-      val sep = 31 - loBits
-      val lo = i.field(31, loBits)
-      val hi = i.field(sep, hiBits)
-      (lo, hi)
+    def splitHiLo(hiBits: Int): (Int, Int) = {
+      val loBits = 32 - hiBits
+      val sep = 31 - hiBits
+      val hi = i.field(31, hiBits)
+      val lo = i.field(sep, loBits)
+      say(s"split lo hi for $i with $hiBits high bits and got low: $lo, high: $hi")
+      (hi, lo)
     }
 
     def log2: Int = math.ceil(math.log(i.toDouble)/math.log(2.0)).toInt

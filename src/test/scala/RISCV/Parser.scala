@@ -98,8 +98,11 @@ object Parser {
     // seqz rd, rs1 => sltiu rd, rs1, 1
     stringWs("seqz")  ~> (reg <~ sep, reg, ok(1)).mapN{ArithImm.sltu},
 
-    stringWs("li")    ~> (reg ~ sep ~ int).collect{
-      case((a, b), c) if (c.nBitsS <= 12) => ArithImm.add(a, 0, c)
+    stringWs("li")    ~> (reg ~ sep ~ (hex | int)).collect{
+      case((a, b), c) if (c.nBitsS <= 12) => {
+        say(s"for c: $c, nBitsS was ${c.nBitsS}")
+        ArithImm.add(a, 0, c)
+      }
     },
 
 
@@ -122,16 +125,16 @@ object Parser {
 
     ////////////////////////////////////////////
     //// load/store
-    stringWs("sw") ~> (reg <~ sep, int <~ char('('), reg <~ char(')')).mapN{case (rs2, offset, rs1) => SW(rs2, rs1, offset)},
-    stringWs("lw") ~> (reg <~ sep, int <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => LW(rd, rs1, offset)},
+    stringWs("sw") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rs2, offset, rs1) => SW(rs2, rs1, offset)},
+    stringWs("lw") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => LW(rd, rs1, offset)},
 
 
 
     
     ////////////////////////////////////////////
     //// others
-    stringWs("auipc") ~> (reg <~ sep, int).mapN{AUIPC.apply},
-    stringWs("lui")   ~> (reg <~ sep, int).mapN{LUI.apply},
+    stringWs("auipc") ~> (reg <~ sep, (hex | int)).mapN{AUIPC.apply},
+    stringWs("lui")   ~> (reg <~ sep, (hex | int)).mapN{LUI.apply},
 
     many(whitespace)  ~> string("nop") ~> ok(Arith.add(0, 0, 0)),
     many(whitespace)  ~> string("done") ~> ok(DONE),
@@ -140,19 +143,18 @@ object Parser {
   ).map(_.widen[Op]).reduce(_|_)
 
 
-  // def getShiftsHalfWord(offset: Int): (Int, Int) = (offset % 4) match {
-  //   case 0 => (16, 16)
-  //   case 1 => (
-  // }
-
   val multipleInstructions: Parser[List[Op]] = List(
-    stringWs("li") ~> (reg <~ sep, int.map(_.splitLoHi(12))).mapN{ case(rd, (lo, hi)) => List(
+    // stringWs("li") ~> (reg <~ sep, (hex | int).map(_.splitLoHi(20))).mapN{ case(rd, (hi, lo)) => {
+    stringWs("li") ~> (reg <~ sep, (hex | int).map(_.splitHiLo(20))).mapN{ case(rd, (hi, lo)) => {
+      say("hello?")
+      List(
+      ArithImm.add(rd, rd, lo),
       LUI(rd, hi),
-      ArithImm.add(rd, 0, lo)
-    )}.map(_.widen[Op]),
+    )}}.map(_.widen[Op]),
 
-    // NOTE: THESE ARE NOT PSEUDO-OPS IN RISV32I!
+    // NOTE: THESE ARE NOT PSEUDO-OPS IN RISC-V32I!
     // NOTE: USES A SPECIAL REGISTER
+    // NOTE: PROBABLY BROKEN, NOT EXHAUSTIVELY TESTED!!!
     stringWs("lh") ~> (reg <~ sep, int <~ char('('), reg <~ char(')')).mapN{
       case (rd, offset, rs1) if (offset % 4 == 3) => {
         val placeHolder = if(rd == Reg("a0").value) Reg("a1").value else Reg("a0").value
