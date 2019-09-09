@@ -27,7 +27,7 @@ private class ChiselTestRunner (
 
     d.poke(d.dut.io.setup, 1)
 
-    val initDMem = DMem(settings).repr.toList
+    val initDMem = DMem(settings).toMap.toList
     val initRegs = Regs(settings).repr.toList
 
     setupImem(instructions)

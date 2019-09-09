@@ -32,9 +32,9 @@ object Data {
 
   trait ExecutionEvent
   import PrintUtils._
-  case class RegUpdate(reg: Reg, word: Int)  extends ExecutionEvent
-  case class MemWrite(addr: Addr, word: Int) extends ExecutionEvent
-  case class MemRead(addr: Addr, word: Int)  extends ExecutionEvent
+  case class RegUpdate(reg: Reg, word: Int)              extends ExecutionEvent
+  case class MemWrite(addr: Addr, width: Int, word: Int) extends ExecutionEvent
+  case class MemRead(addr: Addr, width: Int, word: Int)  extends ExecutionEvent
 
   // addr is the target address
   case class PcUpdateJALR(addr: Addr)        extends ExecutionEvent
@@ -81,28 +81,41 @@ object Data {
   }
 
 
-  case class DMem(repr: Map[Addr, Int]) {
-    def read(addr: Addr): Either[String, (MemRead, Int)] =
-      if(addr.value >= 4096)
+  class DMem(val repr: Array[Byte]) {
+    def read(addr: Addr, width: Int = 4): Either[String, (MemRead, Int)] =
+      if((addr.value + width) >= 4100)
         Left(s"attempted to read from illegal address ${addr.show}")
       else {
-        val readResult = repr.lift(addr).getOrElse(0)
-        Right((MemRead(addr, readResult), readResult))
+        val readResult = (0 until width).map{ byteNumber =>
+          repr(addr.value + byteNumber).toInt << (byteNumber*8)
+        }.toList.combineAll
+
+        Right((MemRead(addr, width, readResult), readResult))
       }
 
-    def write(addr: Addr, word: Int): Either[String, (MemWrite, DMem)] =
-      if(addr.value >= 4096)
+    def write(addr: Addr, word: Int, width: Int = 4): Either[String, MemWrite] =
+      if((addr.value + width) >= 4100)
         Left(s"attempted to write to illegal address ${addr.show}")
       else {
-        Right((MemWrite(addr, word)), DMem(repr + (addr -> word)))
+        (0 until width).foreach{ byteNumber =>
+          repr(addr.value + byteNumber) = word.byteNo(byteNumber)
+        }
+        Right(MemWrite(addr, width, word))
       }
 
-    def apply(setting: TestSetting): DMem = setting match {
+    def apply(setting: TestSetting): Unit = setting match {
       case setting: MEMSET => {
-        DMem(repr + (setting.addr -> setting.word))
+        (0 until 4).foreach{ byteNumber =>
+          repr(setting.addr.value + byteNumber) = setting.word.byteNo(byteNumber)
+        }
       }
-      case _ => this
+      case _ => ()
     }
+
+    def toMap: Map[Addr, Int] = repr.grouped(4).zipWithIndex.map{ case(bytes, idx) =>
+      val word = (0 until 4).map(byteNumber => bytes(byteNumber) << byteNumber).toList.combineAll
+      (Addr(idx*4), word)
+    }.toMap
   }
 
   object Regs{
@@ -112,9 +125,11 @@ object Data {
     }
   }
   object DMem{
-    def empty: DMem = DMem(Map[Addr, Int]())
-    def apply(settings: List[TestSetting]): DMem = settings.foldLeft(empty){
-      case(acc, setting) => acc(setting)
+    def empty: DMem = new DMem(Array.ofDim[Byte](4100))
+    def apply(settings: List[TestSetting]): DMem = {
+      val m = DMem.empty
+      settings.foreach(m.apply)
+      m
     }
   }
 
@@ -168,6 +183,13 @@ object Data {
     }
 
     def log2: Int = math.ceil(math.log(i.toDouble)/math.log(2.0)).toInt
+
+    def byteNo(n: Int): Byte = {
+      assert(n < 4)
+      val left  = n << (8*(3 - n))
+      val right = n >> (8*3)
+      right.toByte
+    }
   }
 
   implicit class StringOps(s: String) {

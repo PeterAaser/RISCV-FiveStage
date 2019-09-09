@@ -36,8 +36,8 @@ object PrintUtils {
   implicit val ExecutionEventFancy = new Fancy[ExecutionEvent]{
     def s(a: ExecutionEvent): fansi.Str = a match {
       case RegUpdate(reg, word) => Str(s"R(${reg.show}) <- 0x${word.hs}")
-      case MemWrite(addr, word) => fansi.Color.Blue(s"M[${addr.show}] <- 0x${word.hs}")
-      case MemRead(addr, word)  => fansi.Color.Red(f"M[${addr.show}] -> 0x${word.hs}")
+      case MemWrite(addr, width, word) => fansi.Color.Blue(s"M[${addr.show}] <- 0x${word.hs}")
+      case MemRead(addr, width, word)  => fansi.Color.Red(f"M[${addr.show}] -> 0x${word.hs}")
 
       // addr is the target address
       case PcUpdateJALR(addr)   => fansi.Color.Green(s"PC updated to ${addr.show} via JALR")

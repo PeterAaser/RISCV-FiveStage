@@ -123,9 +123,8 @@ case class VM(
   private def executeSW(op: SW) = {
     val writeAddress = Addr(regs.repr(op.rs1) + op.offset.value)
     val writeData = regs.repr(op.rs2)
-    dmem.write(writeAddress, writeData).map{ case(event, nextDmem) =>
-      val nextVM = this.copy(dmem = nextDmem)
-      step(nextVM, event)
+    dmem.write(writeAddress, writeData).map{ event =>
+      step(this, event)
     }
   }.left.map(x => Failed(x, pc))
 
@@ -154,7 +153,7 @@ object VM {
   def apply(settings: List[TestSetting], imem: Map[Addr, Op], labelMap: Map[Label, Addr]): VM = {
     val (dmem, regs) = settings.foldLeft((DMem.empty, Regs.empty)){ case((dmem, regs), setting) => setting match {
         case setting: REGSET => (dmem, regs(setting))
-        case setting: MEMSET => (dmem(setting), regs)
+        case setting: MEMSET => {dmem(setting); (dmem, regs)}
       }
     }
     VM(dmem, imem, regs, Addr(0), labelMap)

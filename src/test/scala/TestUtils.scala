@@ -12,7 +12,7 @@ object TestUtils {
   def generateBTree: Unit = {
 
     import cats._
-    import cats.implicits._
+    import implicits._
 
     case class AnnotatedNode(value: Int, index: Int, left: Option[AnnotatedNode], right: Option[AnnotatedNode]){
       def find(key: Int): Unit = {
