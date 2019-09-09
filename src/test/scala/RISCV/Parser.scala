@@ -26,7 +26,7 @@ object Parser {
   def branchZ : (Parser[Int], Parser[String]) = (reg <~ sep, label)
 
   def arith    : (Parser[Int], Parser[Int], Parser[Int]) = (reg <~ sep, reg <~ sep, reg)
-  def arithImm : (Parser[Int], Parser[Int], Parser[Int]) = (reg <~ sep, reg <~ sep, hex | int)
+  def arithImm : (Parser[Int], Parser[Int], Parser[Int]) = (reg <~ sep, reg <~ sep, (hex | int))
 
   def stringWs(s: String) : Parser[String] = many(whitespace) ~> string(s) <~ many1(whitespace)
 
@@ -144,7 +144,6 @@ object Parser {
 
 
   val multipleInstructions: Parser[List[Op]] = List(
-    // stringWs("li") ~> (reg <~ sep, (hex | int).map(_.splitLoHi(20))).mapN{ case(rd, (hi, lo)) => {
     stringWs("li") ~> (reg <~ sep, (hex | int).map(_.splitHiLo(20))).mapN{ case(rd, (hi, lo)) => {
       say("hello?")
       List(
@@ -155,7 +154,7 @@ object Parser {
     // NOTE: THESE ARE NOT PSEUDO-OPS IN RISC-V32I!
     // NOTE: USES A SPECIAL REGISTER
     // NOTE: PROBABLY BROKEN, NOT EXHAUSTIVELY TESTED!!!
-    stringWs("lh") ~> (reg <~ sep, int <~ char('('), reg <~ char(')')).mapN{
+    stringWs("lh") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{
       case (rd, offset, rs1) if (offset % 4 == 3) => {
         val placeHolder = if(rd == Reg("a0").value) Reg("a1").value else Reg("a0").value
         List(
