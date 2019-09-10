@@ -82,13 +82,19 @@ object Data {
 
 
   class DMem(val repr: Array[Byte]) {
-    def read(addr: Addr, width: Int = 4): Either[String, (MemRead, Int)] =
+    def read(addr: Addr, width: Int, signed: Boolean): Either[String, (MemRead, Int)] =
       if((addr.value < 0) || ((addr.value + width) >= 4100))
         Left(s"attempted to read from illegal address ${addr.show}")
       else {
-        val readResult = (0 until width).map{ byteNumber =>
-          ((repr(addr.value + byteNumber).toInt & 255) << (byteNumber*8))
+        val readResultRaw = (0 until width).map{ n =>
+          val readIndex = addr.value + (width - 1) - n
+          val shiftBy = (3 - n)*8
+          ((repr(readIndex).toInt & 255)) << shiftBy
         }.toList.reduceLeft(_|_)
+        
+        val shiftBack = (4 - width)*8
+        val readResult = if(signed) readResultRaw >> shiftBack else readResultRaw >>> shiftBack
+
         Right((MemRead(addr, width, readResult), readResult))
       }
 
@@ -187,10 +193,6 @@ object Data {
       assert(n < 4)
       val left  = i << (8*(3 - n))
       val right = left >>> (8*3)
-      // say(i)
-      // say(i.binary)
-      // say(left.binary)
-      // say(right.binary)
       right.toByte
     }
   }

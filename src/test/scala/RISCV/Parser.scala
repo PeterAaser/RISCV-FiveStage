@@ -125,8 +125,15 @@ object Parser {
 
     ////////////////////////////////////////////
     //// load/store
-    stringWs("sw") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rs2, offset, rs1) => SW(rs2, rs1, offset)},
-    stringWs("lw") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => LW(rd, rs1, offset)},
+    stringWs("sw") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rs2, offset, rs1) => Store.sw(rs2, rs1, offset)},
+    stringWs("sh") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rs2, offset, rs1) => Store.sh(rs2, rs1, offset)},
+    stringWs("sb") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rs2, offset, rs1) => Store.sb(rs2, rs1, offset)},
+
+    stringWs("lw")  ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => Load.lw(rd, rs1, offset)},
+    stringWs("lh")  ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => Load.lh(rd, rs1, offset)},
+    stringWs("lb")  ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => Load.lb(rd, rs1, offset)},
+    stringWs("lhu") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => Load.lhu(rd, rs1, offset)},
+    stringWs("lbu") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{case (rd, offset, rs1) => Load.lbu(rd, rs1, offset)},
 
 
 
@@ -138,8 +145,6 @@ object Parser {
 
     many(whitespace)  ~> string("nop") ~> ok(Arith.add(0, 0, 0)),
     many(whitespace)  ~> string("done") ~> ok(DONE),
-    // stringWs("done")  ~> ok(DONE),
-
   ).map(_.widen[Op]).reduce(_|_)
 
 
@@ -150,39 +155,6 @@ object Parser {
       ArithImm.add(rd, rd, lo),
       LUI(rd, hi),
     )}}.map(_.widen[Op]),
-
-    // NOTE: THESE ARE NOT PSEUDO-OPS IN RISC-V32I!
-    // NOTE: USES A SPECIAL REGISTER
-    // NOTE: PROBABLY BROKEN, NOT EXHAUSTIVELY TESTED!!!
-    stringWs("lh") ~> (reg <~ sep, (hex | int) <~ char('('), reg <~ char(')')).mapN{
-      case (rd, offset, rs1) if (offset % 4 == 3) => {
-        val placeHolder = if(rd == Reg("a0").value) Reg("a1").value else Reg("a0").value
-        List(
-          SW(placeHolder, 0, 2048),
-          LW(placeHolder, rs1.value, (offset & 0xFFFFFF1C)),
-          LW(rd.value, rs1.value, (offset & 0xFFFFFF1C) + 4),
-          ArithImmShift.sra(placeHolder, placeHolder, 24),
-          ArithImmShift.sll(rd.value, rd.value, 24),
-          ArithImmShift.sra(rd.value, rd.value, 16),
-          Arith.add(rd, rd, placeHolder),
-          LW(placeHolder, 0, 2048)).reverse
-      }
-      case (rd, offset, rs1) if (offset % 4 == 2) => {
-        List(
-          LW(rd, rs1, (offset & 0xFFFFFF1C)),
-          ArithImmShift.sra(rd, rd, 16)
-        ).reverse
-      }
-
-      case (rd, offset, rs1) => {
-        val leftShift = if((offset % 4) == 0) 16 else 8
-        List(
-          LW(rd, rs1, (offset & 0xFFFFFF1C)),
-          ArithImmShift.sll(rd, rd, leftShift),
-          ArithImmShift.sra(rd, rd, 16),
-        ).reverse
-      }
-    }.map(_.widen[Op]),
   ).reduce(_|_)
 
 

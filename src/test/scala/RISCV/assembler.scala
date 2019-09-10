@@ -145,8 +145,8 @@ object assembler {
     case x: Arith         => setOpCode("0110011".binary)
     case x: ArithImm      => setOpCode("0010011".binary)
     case x: ArithImmShift => setOpCode("0010011".binary)
-    case x: LW            => setOpCode("0000011".binary)
-    case x: SW            => setOpCode("0100011".binary)
+    case x: Load          => setOpCode("0000011".binary)
+    case x: Store         => setOpCode("0100011".binary)
     case x: JALR          => setOpCode("1100111".binary)
     case x: JAL           => setOpCode("1101111".binary)
     case x: AUIPC         => setOpCode("0010111".binary)
@@ -180,6 +180,22 @@ object assembler {
     case SRA  => setFunct7("0100000".binary) andThen setFunct3("101".binary)
     case OR   => setFunct7("0000000".binary) andThen setFunct3("110".binary)
     case AND  => setFunct7("0000000".binary) andThen setFunct3("111".binary)
+  }
+
+  def setLoadFunct(op: Load): Int => Int = op match {
+    case Load(_, _, _, 4, true)  => setFunct3("010".binary)
+    case Load(_, _, _, 2, true)  => setFunct3("001".binary)
+    case Load(_, _, _, 1, true)  => setFunct3("000".binary)
+    case Load(_, _, _, 2, false) => setFunct3("101".binary)
+    case Load(_, _, _, 1, false) => setFunct3("100".binary)
+    case _ => ???
+  }
+
+  def setStoreFunct(op: Store): Int => Int = op match {
+    case Store(_, _, _, 4)  => setFunct3("010".binary) 
+    case Store(_, _, _, 2)  => setFunct3("000".binary) 
+    case Store(_, _, _, 1)  => setFunct3("001".binary) 
+    case _ => ???
   }
 
 
@@ -221,8 +237,8 @@ object assembler {
     case op: JALR          => instruction => labelMap.lift(op.dst).toRight(s"label ${op.dst} not found", addr).flatMap(addr => setItypeImmediate(addr.value, addr)(instruction))
     case op: AUIPC         => setUtypeImmediate(op.imm.value, addr)
     case op: LUI           => setUtypeImmediate(op.imm.value, addr)
-    case op: LW            => setItypeImmediate(op.offset.value, addr)
-    case op: SW            => setStypeImmediate(op.offset.value, addr)
+    case op: Load          => setItypeImmediate(op.offset.value, addr)
+    case op: Store         => setStypeImmediate(op.offset.value, addr)
     case op: JAL           => instruction => {
       val addressDistance = labelMap
         .lift(op.dst).toRight(s"label ${op.dst} not found", addr)
@@ -251,8 +267,8 @@ object assembler {
       case op: ArithImmShift => setArithFunct(op.op)(instruction)
       case op: Arith         => setArithFunct(op.op)(instruction)
       case op: JALR          => setFunct3("000".binary)(instruction)
-      case op: LW            => setFunct3("010".binary)(instruction)
-      case op: SW            => setFunct3("010".binary)(instruction)
+      case op: Load          => setLoadFunct(op)(instruction)
+      case op: Store         => setStoreFunct(op)(instruction)
       case DONE              => (setFunct3("000".binary) andThen setFunct7("0000000".binary))(instruction)
 
       case op: AUIPC         => instruction

@@ -31,8 +31,8 @@ case class VM(
       case op: LUI           => executeLUI(op)
       case op: JALR          => executeJALR(op)
       case op: JAL           => executeJAL(op)
-      case op: LW            => executeLW(op)
-      case op: SW            => executeSW(op)
+      case op: Load          => executeLoad(op)
+      case op: Store         => executeStore(op)
       case DONE              => Left(Success)
     }
   }
@@ -114,19 +114,20 @@ case class VM(
   }
 
 
-  private def executeLW(op: LW) = dmem.read(Addr(regs.repr(op.rs1) + op.offset.value)).map{ case(event, result) =>
+  private def executeLoad(op: Load) = dmem.read(Addr(regs.repr(op.rs1) + op.offset.value), op.width, op.signed).map{ case(event, result) =>
     val (regUpdate, nextRegs) = regs + (op.rd -> result)
     val nextVM = this.copy(regs = nextRegs)
     step(nextVM, (event :: regUpdate.toList):_*)
   }.left.map(x => Failed(x, pc))
 
-  private def executeSW(op: SW) = {
+  private def executeStore(op: Store) = {
     val writeAddress = Addr(regs.repr(op.rs1) + op.offset.value)
     val writeData = regs.repr(op.rs2)
-    dmem.write(writeAddress, writeData).map{ event =>
+    dmem.write(writeAddress, writeData, op.width).map{ event =>
       step(this, event)
     }
   }.left.map(x => Failed(x, pc))
+
 
   private def step(nextVM: VM, event: ExecutionEvent*) =
     ExecutionTrace(nextVM.stepPC, ExecutionTraceEvent(pc, event:_*))

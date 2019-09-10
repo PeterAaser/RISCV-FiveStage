@@ -87,11 +87,11 @@ object PrintUtils {
     case op: ArithImmShift => s"${op.op}I\t${op.rd.show}, ${op.rs1.show}, ${op.shamt.show}"
     case op: JALR          => fansi.Color.Green(s"JALR\t${op.rd.show}, ${op.rs1.show}, ${op.dst.show}\t[${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
     case op: JAL           => fansi.Color.Magenta(s"JAL\t${op.rd.show}, ${op.dst.show} [${labelMap.lift(op.dst).getOrElse(UNKNOWN)}]")
-    case op: LW            => s"LW\t${op.rd.show}, ${op.offset.show}(${op.rs1.show})"
-    case op: SW            => s"SW\t${op.rs2.show}, ${op.offset.show}(${op.rs1.show})"
     case op: LUI           => s"LUI\t${op.rd.show}, ${op.imm.show}"
     case op: AUIPC         => s"AUIPC\t${op.rd.show}, ${op.imm.show}"
     case DONE              => s"DONE"
+    case op: Load          => s"LW\t${op.rd.show}, ${op.offset.show}(${op.rs1.show})"
+    case op: Store         => s"SW\t${op.rs2.show}, ${op.offset.show}(${op.rs1.show})"
   }
 
 
