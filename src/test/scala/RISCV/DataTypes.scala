@@ -183,7 +183,6 @@ object Data {
       val sep = 31 - hiBits
       val hi = i.field(31, hiBits)
       val lo = i.field(sep, loBits)
-      say(s"split lo hi for $i with $hiBits high bits and got low: $lo, high: $hi")
       (hi, lo)
     }
 
