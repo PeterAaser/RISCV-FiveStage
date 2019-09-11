@@ -99,10 +99,7 @@ object Parser {
     stringWs("seqz")  ~> (reg <~ sep, reg, ok(1)).mapN{ArithImm.sltu},
 
     stringWs("li")    ~> (reg ~ sep ~ (hex | int)).collect{
-      case((a, b), c) if (c.nBitsS <= 12) => {
-        say(s"for c: $c, nBitsS was ${c.nBitsS}")
-        ArithImm.add(a, 0, c)
-      }
+      case((a, b), c) if (c.nBitsS <= 12) => { ArithImm.add(a, 0, c) }
     },
 
 
@@ -152,7 +149,7 @@ object Parser {
     stringWs("li") ~> (reg <~ sep, (hex | int).map(_.splitHiLo(20))).mapN{ case(rd, (hi, lo)) => {
       List(
       ArithImm.add(rd, rd, lo),
-      LUI(rd, hi),
+      LUI(rd, if(lo>0) hi else hi+1),
     )}}.map(_.widen[Op]),
   ).reduce(_|_)
 
