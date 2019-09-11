@@ -52,15 +52,18 @@
 
    Reading the binary of a RISC-V program you get the following:
 
+   #+begin_src text
    0x0:  0x00a00293   --   0000 0000 1010 0000 0000 0010 1001 0011
    0x4:  0x01400313   --   0000 0001 0100 0000 0000 0011 0001 0011
    0x8:  0xfff30313   --   1111 1111 1111 0011 0000 0011 0001 0011
    0xc:  0x00628463   --   0000 0000 0110 0010 1000 0100 0110 0011
    0x10: 0xff9ff06f   --   1111 1111 1001 1111 1111 0000 0110 1111
+   #+end_src
 
    For each instruction describe the format and name and corresponding RISC-V source
-   
    To give you an idea on how decoding would work, here is the decoding of 0x40635293:
+
+   #+begin_src text
    0x40635293   --   0100 0000 0110 0011 0101 0010 1001 0011
 
    Opcode: 0010011 => Format is IType, thus the funct3 field is used to decode further
@@ -71,8 +74,9 @@
    shamt:  000110  => 6
    
    Resulting in ~srai x5, x6, 6~
+   #+end_src
    
-   Your answer should be in the form of a simple asm program.
+   *Your answer should be in the form of a simple asm program.*
    (hint 1: the original asm program had a label, you need to infer where that label was)
    (hint 2: verify your conclusion by assembling your answer)
 
@@ -89,6 +93,6 @@
    li x4, 0xBABE07CE
    #+end_src
    
-   Which of these instructions will be split into ADDI LUI pairs?
-   Why do the two last instructions need to be handled differently from each other?
+   a) Which of these instructions will be split into ADDI LUI pairs?
+   b) Why do the two last instructions need to be handled differently from each other?
    (hint: The parser and assembler in the test suite can help you answer this question)
