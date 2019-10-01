@@ -49,7 +49,7 @@ object TestRunner {
                                            binary.toList.sortBy(_._1.value).map(_._2),
                                            program.settings,
                                            finalVM.pc,
-                                           1500)
+                                           15000)
     } yield {
       val traces = mergeTraces(trace, chiselTrace).map(x => printMergedTraces((x), program))
 
