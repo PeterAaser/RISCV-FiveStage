@@ -14,7 +14,7 @@ cp project/Dependencies.scala ./wrap/project/Dependencies.scala
 cp project/build.properties ./wrap/project/build.properties
 cp sbt.sh ./wrap
 (cd ./wrap/; tar czfv $username.tar.gz .)
-mv ./wrap/$username.gz .
+mv ./wrap/$username.tar.gz .
 
 rm -rf ./wrap
 
