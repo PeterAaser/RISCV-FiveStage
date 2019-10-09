@@ -59,9 +59,12 @@ object fileUtils {
     new File(getClass.getClassLoader.getResource("tests").getPath)
 
   def getAllTests: List[File] = getListOfFilesRecursive(getTestDir.getPath)
-      .filter( f => f.getPath.endsWith(".s") )
+    .filter( f => f.getPath.endsWith(".s") )
 
   def getAllTestNames: List[String] = getAllTests.map(_.toString.split("/").takeRight(1).mkString)
+
+  def getAllWindowsTestNames: List[String] = getAllTests.map(_.toString.split("\\\\").takeRight(1).mkString)
+
 
   def clearTestResults = {
     try {
@@ -79,7 +82,7 @@ object fileUtils {
   def readTest(testOptions: TestOptions): Either[String, List[String]] = {
 
     // Ahh, the GNU toolchain and its tabs
-    val annoyingTabCharacter = '	' 
+    val annoyingTabCharacter = '	'
 
     getAllTests.filter(_.getName.contains(testOptions.testName)).headOption.toRight(s"File not found: ${testOptions.testName}").flatMap{ filename =>
       import scala.io.Source
