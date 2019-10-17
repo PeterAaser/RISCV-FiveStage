@@ -42,14 +42,14 @@
    
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
-   rs1: 4               ||     rs1: 4		   ||      rs1: 1
-   rs2: 5               ||     rs2: 6		   ||      rs2: 2
-   rd:  6               ||     rd:  4		   ||      rd:  5
-   memToReg = false     ||     memToReg = false	   ||      memToReg = false
-   regWrite = true      ||     regWrite = false	   ||      regWrite = true
-   memWrite = false     ||     memWrite = false	   ||      memWrite = false
-   branch   = false     ||     branch   = true	   ||      branch   = false
-   jump     = false     ||     jump     = false	   ||      jump     = false
+   rs1: 4               ||     rs1: 4              ||      rs1: 1
+   rs2: 5               ||     rs2: 6              ||      rs2: 2
+   rd:  6               ||     rd:  4              ||      rd:  5
+   memToReg = false     ||     memToReg = false    ||      memToReg = false
+   regWrite = true      ||     regWrite = false    ||      regWrite = true
+   memWrite = false     ||     memWrite = false    ||      memWrite = false
+   branch   = false     ||     branch   = true     ||      branch   = false
+   jump     = false     ||     jump     = false    ||      jump     = false
    
    For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
    
@@ -59,12 +59,12 @@
    
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
-   rs1: 1               ||     rs1: 4		   ||      rs1: 1
-   rs2: 5               ||     rs2: 6		   ||      rs2: 0
-   rd:  0               ||     rd:  1		   ||      rd:  0
+   rs1: 1               ||     rs1: 4              ||      rs1: 1
+   rs2: 5               ||     rs2: 6              ||      rs2: 0
+   rd:  0               ||     rd:  1              ||      rd:  0
    memToReg = false     ||     memToReg = false    ||      memToReg = false
    regWrite = true      ||     regWrite = true     ||      regWrite = true
-   memWrite = false     ||     memWrite = false	   ||      memWrite = false
+   memWrite = false     ||     memWrite = false    ||      memWrite = false
    branch   = false     ||     branch   = true     ||      branch   = false
    jump     = true      ||     jump     = true     ||      jump     = false
 
@@ -76,12 +76,12 @@
    
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
-   rs1: 2               ||     rs1: 4		   ||      rs1: 3
-   rs2: 5               ||     rs2: 6		   ||      rs2: 4
-   rd:  1               ||     rd:  1		   ||      rd:  5
+   rs1: 2               ||     rs1: 4              ||      rs1: 3
+   rs2: 5               ||     rs2: 6              ||      rs2: 4
+   rd:  1               ||     rd:  1              ||      rd:  5
    memToReg = false     ||     memToReg = true     ||      memToReg = false
    regWrite = false     ||     regWrite = true     ||      regWrite = true
-   memWrite = true      ||     memWrite = false	   ||      memWrite = false
+   memWrite = true      ||     memWrite = false    ||      memWrite = false
    branch   = false     ||     branch   = false    ||      branch   = false
    jump     = false     ||     jump     = false    ||      jump     = false
 
