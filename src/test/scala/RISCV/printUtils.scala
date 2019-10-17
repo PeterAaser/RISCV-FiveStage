@@ -42,7 +42,8 @@ object PrintUtils {
       // addr is the target address
       case PcUpdateJALR(addr)   => fansi.Color.Green(s"PC updated to ${addr.show} via JALR")
       case PcUpdateJAL(addr)    => fansi.Color.Magenta(s"PC updated to ${addr.show} via JAL")
-      case PcUpdateB(addr)      => fansi.Color.Yellow(s"PC updated to ${addr.show} via Branch")
+      case PcUpdateBranch(addr)   => fansi.Color.Yellow(s"PC updated to ${addr.show} via Branch")
+      case PcUpdateNoBranch(addr) => fansi.Color.Yellow(s"PC updated to ${addr.show}, skipping a Branch")
     }
   }
 

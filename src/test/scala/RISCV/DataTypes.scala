@@ -39,7 +39,8 @@ object Data {
   // addr is the target address
   case class PcUpdateJALR(addr: Addr)        extends ExecutionEvent
   case class PcUpdateJAL(addr: Addr)         extends ExecutionEvent
-  case class PcUpdateB(addr: Addr)           extends ExecutionEvent
+  case class PcUpdateBranch(addr: Addr)   extends ExecutionEvent
+  case class PcUpdateNoBranch(addr: Addr) extends ExecutionEvent
   case class PcUpdate(addr: Addr)            extends ExecutionEvent
 
   case class ExecutionTraceEvent(pc: Addr, event: ExecutionEvent*){ override def toString(): String = s"$pc: " + event.toList.mkString(", ") }

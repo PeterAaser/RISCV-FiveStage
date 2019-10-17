@@ -110,25 +110,10 @@ object Ops {
   case class LUI(rd: Reg, imm: Imm)   extends Op with UType
   case class AUIPC(rd: Reg, imm: Imm) extends Op with UType
 
-
-  case class Store(rs2: Reg, rs1: Reg, offset: Imm, width: Int) extends Op with SType
-  object Store {
-    def sw(rs2: Int, rs1: Int, offset: Int) = Store(Reg(rs2), Reg(rs1), Imm(offset), 4)
-    def sh(rs2: Int, rs1: Int, offset: Int) = Store(Reg(rs2), Reg(rs1), Imm(offset), 2)
-    def sb(rs2: Int, rs1: Int, offset: Int) = Store(Reg(rs2), Reg(rs1), Imm(offset), 1)
-  }
-
-  case class Load(rd: Reg, rs1: Reg, offset: Imm, width: Int, signed: Boolean) extends Op with IType
-  object Load {
-    def lw (rd: Int, rs1: Int, offset: Int) = Load(Reg(rd), Reg(rs1), Imm(offset), 4, true)
-    def lh (rd: Int, rs1: Int, offset: Int) = Load(Reg(rd), Reg(rs1), Imm(offset), 2, true)
-    def lb (rd: Int, rs1: Int, offset: Int) = Load(Reg(rd), Reg(rs1), Imm(offset), 1, true)
-    def lhu(rd: Int, rs1: Int, offset: Int) = Load(Reg(rd), Reg(rs1), Imm(offset), 2, false)
-    def lbu(rd: Int, rs1: Int, offset: Int) = Load(Reg(rd), Reg(rs1), Imm(offset), 1, false)
-  }
-
   case class JALR(rd: Reg, rs1: Reg, dst: String) extends Op with IType
   case class JAL(rd: Reg, dst: String) extends Op with UType
+  case class SW(rs2: Reg, rs1: Reg, offset: Imm) extends Op with SType
+  case class LW(rd: Reg, rs1: Reg, offset: Imm)  extends Op with IType
 
 
   object LUI { def apply(rd: Int, imm: Int): LUI = LUI(Reg(rd), Imm(imm)) }
@@ -136,6 +121,8 @@ object Ops {
 
   object JAL{ def apply(rd: Int, dst: String): JAL = JAL(Reg(rd), dst) }
   object JALR{ def apply(rd: Int, rs1: Int, dst: String): JALR = JALR(Reg(rd), Reg(rs1), dst) }
+  object SW  { def apply(rs2: Int, rs1: Int, offset: Int): SW = SW(Reg(rs2), Reg(rs1), Imm(offset)) }
+  object LW  { def apply(rd: Int, rs1: Int, offset: Int): LW = LW(Reg(rd), Reg(rs1), Imm(offset)) }
 
   // This op should not be assembled, but will for the sake of simplicity be rendered as a NOP
   case object DONE extends Op with IType { val rd = Reg(0); val rs1 = Reg(0) }
