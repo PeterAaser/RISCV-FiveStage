@@ -95,9 +95,8 @@
    #+end_src
 
 * Question 3 - Branch prediction
-  Consider a 2 bit branch predictor with only 4 slots where the decision to take a branch or
-  not is decided in accordance to the following table
-
+  Consider a 2 bit branch predictor with only 4 slots for a 32 bit architecture, where the decision to 
+  take a branch or not is decided in accordance to the following table:
   #+begin_src text
   state  ||  predict taken  ||  next state if taken  ||  next state if not taken ||
   =======||=================||=======================||==========================||
@@ -108,7 +107,6 @@
   #+end_src
 
   At some point during execution the program counter is ~0xc~ and the branch predictor table looks like this:
-
   #+begin_src text
   slot  ||  value
   ======||========
@@ -118,7 +116,7 @@
   11    ||  01
   #+end_src
 
-  
+  For the following program:
   #+begin_src asm
   0xc  addi x1, x3, 10
   0x10 add  x2, x1, x1
@@ -190,10 +188,13 @@
   }
   #+END_SRC
 
-** TODO Branch predictor is underspecified, needs to be cleaned up
 ** Your task
-   Your job is to implement a test that checks how many misses occur for a 2 bit branch predictor with 4 slots.
-   For this task it is probably smart to use something else than a ~Map[(Int, Boolean)]~
+   Your job is to implement a test that checks how many misses occur for a 2 bit branch predictor with 8 slots.
+   The rule table is the same as in question 3.
+   For simplicitys sake, assume that every value in the table is initialized to 00.
+
+   For this task it is necessary to use something more sophisticated than ~Map[(Int, Boolean)]~ to represent
+   your branch predictor model.
 
    The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileTest.
 
