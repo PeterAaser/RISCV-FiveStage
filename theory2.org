@@ -1,0 +1,101 @@
+* Question 1 - Benchmarking
+  In order to gauge the performance increase from adding branch predictors it is necessary to do some testing.
+  Rather than writing a test from scratch it is better to use the tester already in use in the test harness.
+  When running a program the VM outputs a log of all events, including which branches have been taken and which
+  haven't, which as it turns out is the only information we actually need to gauge the effectiveness of a branch
+  predictor!
+
+  For this exercise you will write a program that parses a log of branch events.
+
+  #+BEGIN_SRC scala
+  sealed trait BranchEvent
+  case class Taken(addr: Int) extends BranchEvent
+  case class NotTaken(addr: Int) extends BranchEvent
+  
+
+  def profile(events: List[BranchEvent]): Int = ???
+  #+END_SRC
+
+  To help you get started, I have provided you with much of the necessary code.
+  In order to get an idea for how you should profile branch misses, consider the following profiler which calculates
+  misses for a processor with a branch predictor with a 1 bit predictor with infinite memory:
+
+  #+BEGIN_SRC scala
+  def OneBitInfiniteSlots(events: List[BranchEvent]): Int = {
+  
+    // Helper inspects the next element of the event list. If the event is a mispredict the prediction table is updated
+    // to reflect this.
+    // As long as there are remaining events the helper calls itself recursively on the remainder
+    def helper(events: List[BranchEvent], predictionTable: Map[Int, Boolean]): Int = {
+      events match {
+
+        // Scala syntax for matching a list with a head element of some type and a tail 
+	// `case h :: t =>` 
+	// means we want to match a list with at least a head and a tail (tail can be Nil, so we
+	// essentially want to match a list with at least one element)
+	// h is the first element of the list, t is the remainder (which can be Nil, aka empty)
+
+	// `case Constructor(arg1, arg2) :: t => ` 
+	// means we want to match a list whose first element is of type Constructor, giving us access to its internal
+	// values.
+
+	// `case Constructor(arg1, arg2) :: t => if(p(arg1, arg2))` 
+	// means we want to match a list whose first element is of type Constructor while satisfying some predicate p,
+	// called an if guard.
+        case Taken(addr)    :: t if( predictionTable(addr)) => helper(t, predictionTable)
+        case Taken(addr)    :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, true))
+        case NotTaken(addr) :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
+        case NotTaken(addr) :: t if( predictionTable(addr)) => helper(t, predictionTable)
+        case _ => 0
+      }
+    }
+    
+    // Initially every possible branch is set to false since the initial state of the predictor is to assume branch not taken
+    def initState = events.map{
+      case Taken(addr)    => (addr, false)
+      case NotTaken(addr) => (addr, false)
+    }.toMap
+  
+    helper(events, initState)
+  }
+  #+END_SRC
+  
+** Your task
+   Your job is to implement a test that checks how many misses occur for a 2 bit branch predictor with 4 slots.
+   For this task it is probably smart to use something else than a ~Map[(Int, Boolean)]~
+   
+   The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileTest.
+   If you do so now you will see that the unrealistic prediction model yields 1449 misses.
+
+   With a 2 bit 4 slot scheme, how many misses will you incur? 
+   Answer with a number.
+  
+* Question 2 - Cache profiling
+  Unlike our design which has a very limited memory pool, real designs have access to vast amounts of memory, offset
+  by a steep cost in access latency.
+  To amend this a modern processor features several caches where even the smallest fastest cache has more memory than
+  your entire design.
+  In order to investigate how caches can alter performance it is therefore necessary to make some rather
+  unrealistic assumptions to see how different cache schemes impacts performance.
+  
+  We will therefore assume the following: 
+  + Reads from main memory takes 5 cycles
+  + cache has a total storage of 32 words (1024 bits)
+  + cache reads work as they do now (i.e no additional latency)
+    
+  For this exercise you will write a program that parses a log of memory events, similar to previous task
+  #+BEGIN_SRC scala
+  sealed trait MemoryEvent
+  case class Write(addr: Int) extends MemoryEvent
+  case class Read(addr: Int) extends MemoryEvent
+  
+
+  def profile(events: List[MemoryEvent]): Int = ???
+  #+END_SRC
+
+** Your task
+   Your job is to implement a test that checks how many delay cycles will occur for a cache which:
+   + Follows a 2-way associative scheme
+   + Block size is 4 words (128 bits)
+   + Is write-through write no-allocate
+   + Eviction policy is LRU (least recently used)
