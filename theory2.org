@@ -40,6 +40,7 @@
 ** Data hazards 1
    At some cycle the following instructions can be found in a 5 stage design:
    
+   #+begin_src text
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
    rs1: 4               ||     rs1: 4              ||      rs1: 1
@@ -50,6 +51,7 @@
    memWrite = false     ||     memWrite = false    ||      memWrite = false
    branch   = false     ||     branch   = true     ||      branch   = false
    jump     = false     ||     jump     = false    ||      jump     = false
+   #+end_src
    
    For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
    
@@ -57,6 +59,7 @@
 
    At some cycle the following instructions can be found in a 5 stage design:
    
+   #+begin_src text
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
    rs1: 1               ||     rs1: 4              ||      rs1: 1
@@ -67,6 +70,7 @@
    memWrite = false     ||     memWrite = false    ||      memWrite = false
    branch   = false     ||     branch   = true     ||      branch   = false
    jump     = true      ||     jump     = true     ||      jump     = false
+   #+end_src
 
    For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
 
@@ -74,6 +78,7 @@
 
    At some cycle the following instructions can be found in a 5 stage design:
    
+   #+begin_src text
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
    rs1: 2               ||     rs1: 4              ||      rs1: 3
@@ -87,6 +92,7 @@
 
    Should the forwarding unit issue a load hazard signal?
    (Hint: what are the semantics of the instruction currently in EX stage?)
+   #+end_src
 
 * Question 3 - Benchmarking
   In order to gauge the performance increase from adding branch predictors it is necessary to do some testing.
