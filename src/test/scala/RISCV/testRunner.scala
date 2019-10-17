@@ -25,7 +25,8 @@ case class TestOptions(
   printMergedTrace   : Boolean,
   nopPadded          : Boolean,
   breakPoints        : List[Int], // Not implemented
-  testName           : String
+  testName           : String,
+  maxSteps           : Int
 )
 
 case class TestResult(
@@ -44,12 +45,12 @@ object TestRunner {
     val testResults = for {
       lines                           <- fileUtils.readTest(testOptions)
       program                         <- FiveStage.Parser.parseProgram(lines, testOptions)
-      (binary, (trace, finalVM))      <- program.validate.map(x => (x._1, x._2.run))
+      (binary, (trace, finalVM))      <- program.validate(testOptions.maxSteps).map(x => (x._1, x._2.run))
       (termitationCause, chiselTrace) <- ChiselTestRunner(
-                                           binary.toList.sortBy(_._1.value).map(_._2),
-                                           program.settings,
-                                           finalVM.pc,
-                                           15000)
+        binary.toList.sortBy(_._1.value).map(_._2),
+        program.settings,
+        finalVM.pc,
+        testOptions.maxSteps)
     } yield {
       val traces = mergeTraces(trace, chiselTrace).map(x => printMergedTraces((x), program))
 
@@ -106,7 +107,7 @@ object TestRunner {
     val testResults = for {
       lines                           <- fileUtils.readTest(testOptions)
       program                         <- FiveStage.Parser.parseProgram(lines, testOptions)
-      (binary, (trace, finalVM))      <- program.validate.map(x => (x._1, x._2.run))
+      (binary, (trace, finalVM))      <- program.validate(testOptions.maxSteps).map(x => (x._1, x._2.run))
     } yield {
 
       sealed trait BranchEvent
@@ -164,6 +165,7 @@ object TestRunner {
       say(OneBitInfiniteSlots(events))
 
     }
+
     true
   }
 
@@ -173,7 +175,7 @@ object TestRunner {
     val testResults = for {
       lines                           <- fileUtils.readTest(testOptions)
       program                         <- FiveStage.Parser.parseProgram(lines, testOptions)
-      (binary, (trace, finalVM))      <- program.validate.map(x => (x._1, x._2.run))
+      (binary, (trace, finalVM))      <- program.validate(testOptions.maxSteps).map(x => (x._1, x._2.run))
     } yield {
 
       sealed trait MemoryEvent

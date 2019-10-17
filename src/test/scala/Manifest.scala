@@ -43,7 +43,8 @@ object Manifest {
     printMergedTrace   = false,
     nopPadded          = nopPadded,
     breakPoints        = Nil, // not implemented
-    testName           = name)
+    testName           = name,
+    maxSteps           = 15000)
 
 }
 

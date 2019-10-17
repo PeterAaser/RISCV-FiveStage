@@ -66,6 +66,7 @@ object Parser {
     stringWs("sra")   ~> arith.mapN{Arith.sra},
 
     stringWs("slt")   ~> arith.mapN{Arith.slt},
+    stringWs("sgt")   ~> arith.mapN{ case(x,y,z) => Arith.slt(x,z,y)},
     stringWs("sltu")  ~> arith.mapN{Arith.sltu},
 
     // pseudos
@@ -99,10 +100,7 @@ object Parser {
     stringWs("seqz")  ~> (reg <~ sep, reg, ok(1)).mapN{ArithImm.sltu},
 
     stringWs("li")    ~> (reg ~ sep ~ (hex | int)).collect{
-      case((a, b), c) if (c.nBitsS <= 12) => {
-        say(s"for c: $c, nBitsS was ${c.nBitsS}")
-        ArithImm.add(a, 0, c)
-      }
+      case((a, b), c) if (c.nBitsS <= 12) => { ArithImm.add(a, 0, c) }
     },
 
 

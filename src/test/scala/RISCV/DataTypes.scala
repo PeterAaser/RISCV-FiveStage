@@ -236,7 +236,6 @@ object Data {
     ops      : List[SourceInfo[Op]],
     settings : List[TestSetting],
     labelMap : Map[Label, Addr],
-    maxSteps : Int = 5000
   ){
 
    def imem: Map[Addr, Op] =
@@ -272,7 +271,7 @@ object Data {
     /**
       * Returns the binary code and the execution trace or an error for convenient error checking.
       */
-    def validate: Either[String, (Map[Addr, Int], ExecutionTrace[VM])] = machineCode.flatMap{ binary =>
+    def validate(maxSteps: Int): Either[String, (Map[Addr, Int], ExecutionTrace[VM])] = machineCode.flatMap{ binary =>
       val uk = "UNKNOWN"
       val (finish, trace) = VM.run(maxSteps, vm)
       finish match {
