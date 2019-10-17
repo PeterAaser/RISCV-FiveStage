@@ -6,10 +6,12 @@
   #+begin_src asm
     addi t0,   zero,  10
     addi t1,   zero,  20
+  L2:
     sub  t1,   t1,    t0
     beq  t1,   zero, .L2
     jr   ra
   #+end_src
+
 
 ** program 2
   #+begin_src asm
@@ -18,6 +20,7 @@
     beq  t0,   zero,  .L3
     jr   ra
   #+end_src
+
 
 ** program 3
   #+begin_src asm
@@ -29,7 +32,62 @@
   jr   ra
   #+end_src
 
-* Question 2 - ???
+
+* Question 2 - Handling hazards
+  For this question, keep in mind that the forwarder does not care if the values it forwards are being used or not!
+  Even for a JAL instructions which has neither an rs1 or rs2 field, the forwarder must still forward its values.
+
+** Data hazards 1
+   At some cycle the following instructions can be found in a 5 stage design:
+   
+   EX:                  ||     MEM:                ||      WB:
+   ---------------------||-------------------------||--------------------------
+   rs1: 4               ||     rs1: 4		   ||      rs1: 1
+   rs2: 5               ||     rs2: 6		   ||      rs2: 2
+   rd:  6               ||     rd:  4		   ||      rd:  5
+   memToReg = false     ||     memToReg = false	   ||      memToReg = false
+   regWrite = true      ||     regWrite = false	   ||      regWrite = true
+   memWrite = false     ||     memWrite = false	   ||      memWrite = false
+   branch   = false     ||     branch   = true	   ||      branch   = false
+   jump     = false     ||     jump     = false	   ||      jump     = false
+   
+   For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
+   
+** Data hazards 2
+
+   At some cycle the following instructions can be found in a 5 stage design:
+   
+   EX:                  ||     MEM:                ||      WB:
+   ---------------------||-------------------------||--------------------------
+   rs1: 1               ||     rs1: 4		   ||      rs1: 1
+   rs2: 5               ||     rs2: 6		   ||      rs2: 0
+   rd:  0               ||     rd:  1		   ||      rd:  0
+   memToReg = false     ||     memToReg = false    ||      memToReg = false
+   regWrite = true      ||     regWrite = true     ||      regWrite = true
+   memWrite = false     ||     memWrite = false	   ||      memWrite = false
+   branch   = false     ||     branch   = true     ||      branch   = false
+   jump     = true      ||     jump     = true     ||      jump     = false
+
+   For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
+
+** Data hazards 3
+
+   At some cycle the following instructions can be found in a 5 stage design:
+   
+   EX:                  ||     MEM:                ||      WB:
+   ---------------------||-------------------------||--------------------------
+   rs1: 2               ||     rs1: 4		   ||      rs1: 3
+   rs2: 5               ||     rs2: 6		   ||      rs2: 4
+   rd:  1               ||     rd:  1		   ||      rd:  5
+   memToReg = false     ||     memToReg = true     ||      memToReg = false
+   regWrite = false     ||     regWrite = true     ||      regWrite = true
+   memWrite = true      ||     memWrite = false	   ||      memWrite = false
+   branch   = false     ||     branch   = false    ||      branch   = false
+   jump     = false     ||     jump     = false    ||      jump     = false
+
+   Should the forwarding unit issue a load hazard signal?
+   (Hint: what are the semantics of the instruction currently in EX stage?)
+
 * Question 3 - Benchmarking
   In order to gauge the performance increase from adding branch predictors it is necessary to do some testing.
   Rather than writing a test from scratch it is better to use the tester already in use in the test harness.
