@@ -1,5 +1,5 @@
 * Question 1 - Hazards
-  For the following program describe each hazard with type (data or control), line number and a
+  For the following programs describe each hazard with type (data or control), line number and a
   small (max one sentence) description
 
 ** program 1
@@ -94,7 +94,41 @@
    (Hint: what are the semantics of the instruction currently in EX stage?)
    #+end_src
 
-* Question 3 - Benchmarking
+* Question 3 - Branch prediction
+  Consider a 2 bit branch predictor with only 4 slots where the decision to take a branch or
+  not is decided in accordance to the following table
+
+  #+begin_src text
+  state  ||  predict taken  ||  next state if taken  ||  next state if not taken ||
+  =======||=================||=======================||==========================||
+  00     ||  NO             ||  01                   ||  00                      ||
+  01     ||  NO             ||  11                   ||  00                      ||
+  10     ||  YES            ||  11                   ||  00                      ||
+  11     ||  YES            ||  11                   ||  10                      ||
+  #+end_src
+
+  At some point during execution the program counter is ~0xc~ and the branch predictor table looks like this:
+
+  #+begin_src text
+  slot  ||  value
+  ======||========
+  00    ||  01
+  01    ||  00
+  10    ||  11
+  11    ||  01
+  #+end_src
+
+  
+  #+begin_src asm
+  0xc  addi x1, x3, 10
+  0x10 add  x2, x1, x1
+  0x14 beq  x1, x2, .L1 
+  0x18 j    .L2
+  #+end_src
+  
+  Will the predictor predict taken or not taken for the beq instruction?
+
+* Question 4 - Benchmarking
   In order to gauge the performance increase from adding branch predictors it is necessary to do some testing.
   Rather than writing a test from scratch it is better to use the tester already in use in the test harness.
   When running a program the VM outputs a log of all events, including which branches have been taken and which
@@ -162,12 +196,11 @@
    For this task it is probably smart to use something else than a ~Map[(Int, Boolean)]~
 
    The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileTest.
-   If you do so now you will see that the unrealistic prediction model yields 1449 misses.
 
    With a 2 bit 4 slot scheme, how many misses will you incur?
    Answer with a number.
 
-* Question 4 - Cache profiling
+* Question 5 - Cache profiling
   Unlike our design which has a very limited memory pool, real designs have access to vast amounts of memory, offset
   by a steep cost in access latency.
   To amend this a modern processor features several caches where even the smallest fastest cache has more memory than
@@ -191,7 +224,7 @@
   #+END_SRC
 
 ** Your task
-   Your job is to implement a test that checks how many delay cycles will occur for a cache which:
+   Your job is to implement a model that tests how many delay cycles will occur for a cache which:
    + Follows a 2-way associative scheme
    + Block size is 4 words (128 bits)
    + Is write-through write no-allocate
