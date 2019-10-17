@@ -64,6 +64,6 @@ addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4")
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 
-testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-eS")
+testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest)
 
 addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch)

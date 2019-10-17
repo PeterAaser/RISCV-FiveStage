@@ -15,11 +15,13 @@ case object Timeout extends Finished
 case class Failed(s: String, addr: Addr) extends Finished
 
 case class VM(
-  dmem     : DMem,
-  imem     : Map[Addr, Op],
-  regs     : Regs,
-  pc       : Addr,
-  labelMap : Map[Label, Addr]){
+  dmem        : DMem,
+  imem        : Map[Addr, Op],
+  regs        : Regs,
+  pc          : Addr,
+  labelMap    : Map[Label, Addr],
+  breakPoints : Set[Addr],
+){
   def stepInstruction: Either[Finished, ExecutionTrace[VM]] = {
     if (pc.value == 0xEB1CEB1C) Left(Success)
     else getOp flatMap {
@@ -37,17 +39,22 @@ case class VM(
     }
   }
 
-
+  private def takeSnapShot: Option[ExecutionEvent] = {
+    breakPoints.find(bp => pc == bp).map{ _ =>
+      val memcopy = dmem.clone
+      Snapshot(copy(dmem = memcopy))
+    }
+  }
 
   private def executeBranch(op: Branch) = {
     getAddr(op.dst).map{ addr =>
       val takeBranch = regs.compare(op.rs1, op.rs2, op.comp.run)
       if(takeBranch){
         val nextVM = copy(pc = addr)
-        jump(nextVM, PcUpdateB(nextVM.pc))
+        jump(nextVM, PcUpdateBranch(nextVM.pc))
       }
       else {
-        step(this)
+        step(this, PcUpdateNoBranch(this.pc + Addr(4)))
       }
     }
   }
@@ -149,15 +156,15 @@ case class VM(
 
 object VM {
 
-  val init = VM(DMem.empty, Map[Addr, Op](), Regs.empty, Addr(0), Map[Label, Addr]())
+  val init = VM(DMem.empty, Map[Addr, Op](), Regs.empty, Addr(0), Map[Label, Addr](), Set[Addr]())
 
-  def apply(settings: List[TestSetting], imem: Map[Addr, Op], labelMap: Map[Label, Addr]): VM = {
+  def apply(settings: List[TestSetting], imem: Map[Addr, Op], labelMap: Map[Label, Addr], breakPoints: Set[Addr]): VM = {
     val (dmem, regs) = settings.foldLeft((DMem.empty, Regs.empty)){ case((dmem, regs), setting) => setting match {
         case setting: REGSET => (dmem, regs(setting))
         case setting: MEMSET => {dmem(setting); (dmem, regs)}
       }
     }
-    VM(dmem, imem, regs, Addr(0), labelMap)
+    VM(dmem, imem, regs, Addr(0), labelMap, breakPoints)
   }
 
   def run(maxSteps: Int, vm: VM) = {

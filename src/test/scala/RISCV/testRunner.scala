@@ -24,8 +24,9 @@ case class TestOptions(
   printVMfinal       : Boolean,
   printMergedTrace   : Boolean,
   nopPadded          : Boolean,
-  breakPoints        : List[Int], // Not implemented
-  testName           : String
+  breakPoints        : List[Addr], // Not implemented
+  testName           : String,
+  maxSteps           : Int = 50000
 )
 
 case class TestResult(
@@ -39,17 +40,18 @@ case class TestResult(
 
 object TestRunner {
 
+
   def run(testOptions: TestOptions): Boolean = {
 
     val testResults = for {
       lines                           <- fileUtils.readTest(testOptions)
       program                         <- FiveStage.Parser.parseProgram(lines, testOptions)
-      (binary, (trace, finalVM))      <- program.validate.map(x => (x._1, x._2.run))
+      (binary, (trace, finalVM))      <- program.validate(testOptions.breakPoints.toSet, testOptions.maxSteps).map(x => (x._1, x._2.run))
       (termitationCause, chiselTrace) <- ChiselTestRunner(
                                            binary.toList.sortBy(_._1.value).map(_._2),
                                            program.settings,
                                            finalVM.pc,
-                                           1500)
+                                           testOptions.maxSteps)
     } yield {
       val traces = mergeTraces(trace, chiselTrace).map(x => printMergedTraces((x), program))
 
@@ -57,6 +59,10 @@ object TestRunner {
       val vmTraceString = printVMtrace(trace, program)
       val vmFinalState = finalVM.regs.show
       val traceString = printLogSideBySide(trace, chiselTrace, program)
+
+      say(vmTraceString)
+      say(vmFinalState)
+
 
       val regError = compareRegs(trace, chiselTrace)
       val memError = compareMem(trace, chiselTrace)
@@ -99,5 +105,97 @@ object TestRunner {
       }
       successful
     }.toOption.getOrElse(false)
+  }
+
+
+
+  def profileBranching(testOptions: TestOptions): Boolean = {
+
+    val testResults = for {
+      lines                           <- fileUtils.readTest(testOptions)
+      program                         <- FiveStage.Parser.parseProgram(lines, testOptions)
+      (binary, (trace, finalVM))      <- program.validate(testOptions.breakPoints.toSet, testOptions.maxSteps).map(x => (x._1, x._2.run))
+    } yield {
+
+      sealed trait BranchEvent
+      case class Taken(addr: Int) extends BranchEvent
+      case class NotTaken(addr: Int) extends BranchEvent
+
+      val events: List[BranchEvent] = trace.flatMap(_.event).collect{
+        case PcUpdateBranch(x) => Taken(x.value)
+        case PcUpdateNoBranch(x) => NotTaken(x.value)
+      }
+
+
+      /**
+        * This is a sample profiler for a rather unrealistic branch predictor which has an unlimited amount
+        * of slots
+        */
+      def OneBitInfiniteSlots(events: List[BranchEvent]): Int = {
+
+        // Helper inspects the next element of the event list. If the event is a mispredict the prediction table is updated
+        // to reflect this.
+        // As long as there are remaining events the helper calls itself recursively on the remainder
+        def helper(events: List[BranchEvent], predictionTable: Map[Int, Boolean]): Int = {
+          events match {
+
+            // Scala syntax for matching a list with a head element of some type and a tail
+	    // `case h :: t =>`
+	    // means we want to match a list with at least a head and a tail (tail can be Nil, so we
+	    // essentially want to match a list with at least one element)
+	    // h is the first element of the list, t is the remainder (which can be Nil, aka empty)
+
+	    // `case Constructor(arg1, arg2) :: t => `
+	    // means we want to match a list whose first element is of type Constructor, giving us access to its internal
+	    // values.
+
+	    // `case Constructor(arg1, arg2) :: t => if(p(arg1, arg2))`
+	    // means we want to match a list whose first element is of type Constructor while satisfying some predicate p,
+	    // called an if guard.
+            case Taken(addr)    :: t if( predictionTable(addr)) => helper(t, predictionTable)
+            case Taken(addr)    :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, true))
+            case NotTaken(addr) :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
+            case NotTaken(addr) :: t if( predictionTable(addr)) => helper(t, predictionTable)
+            case _ => 0
+          }
+        }
+
+        // Initially every possible branch is set to false since the initial state of the predictor is to assume branch not taken
+        def initState = events.map{
+          case Taken(addr)    => (addr, false)
+          case NotTaken(addr) => (addr, false)
+        }.toMap
+
+        helper(events, initState)
+      }
+
+      say(OneBitInfiniteSlots(events))
+
+    }
+    true
+  }
+
+
+  def profileCache(testOptions: TestOptions): Boolean = {
+
+    val testResults = for {
+      lines                           <- fileUtils.readTest(testOptions)
+      program                         <- FiveStage.Parser.parseProgram(lines, testOptions)
+      (binary, (trace, finalVM))      <- program.validate(testOptions.breakPoints.toSet, testOptions.maxSteps).map(x => (x._1, x._2.run))
+    } yield {
+
+      sealed trait MemoryEvent
+      case class Write(addr: Int) extends MemoryEvent
+      case class Read(addr: Int) extends MemoryEvent
+
+      val events: List[MemoryEvent] = trace.flatMap(_.event).collect{
+        case MemWrite(x,_,_) => Write(x.value)
+        case MemRead(x,_,_) => Read(x.value)
+      }
+
+      // Your cache here
+
+    }
+    true
   }
 }

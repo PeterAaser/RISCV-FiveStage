@@ -37,10 +37,13 @@ object Data {
   case class MemRead(addr: Addr, width: Int, word: Int)  extends ExecutionEvent
 
   // addr is the target address
-  case class PcUpdateJALR(addr: Addr)        extends ExecutionEvent
-  case class PcUpdateJAL(addr: Addr)         extends ExecutionEvent
-  case class PcUpdateB(addr: Addr)           extends ExecutionEvent
-  case class PcUpdate(addr: Addr)            extends ExecutionEvent
+  case class PcUpdateJALR(addr: Addr)     extends ExecutionEvent
+  case class PcUpdateJAL(addr: Addr)      extends ExecutionEvent
+  case class PcUpdateBranch(addr: Addr)   extends ExecutionEvent
+  case class PcUpdateNoBranch(addr: Addr) extends ExecutionEvent
+  case class PcUpdate(addr: Addr)         extends ExecutionEvent
+
+  case class Snapshot(vm: VM)             extends ExecutionEvent
 
   case class ExecutionTraceEvent(pc: Addr, event: ExecutionEvent*){ override def toString(): String = s"$pc: " + event.toList.mkString(", ") }
   type ExecutionTrace[A] = Writer[List[ExecutionTraceEvent], A]
@@ -83,7 +86,7 @@ object Data {
 
   class DMem(val repr: Array[Byte]) {
     def read(addr: Addr, width: Int, signed: Boolean): Either[String, (MemRead, Int)] =
-      if((addr.value < 0) || ((addr.value + width) >= 4100))
+      if((addr.value < 0) || ((addr.value + width) >= 410000))
         Left(s"attempted to read from illegal address ${addr.show}")
       else {
         val readResultRaw = (0 until width).map{ n =>
@@ -99,7 +102,7 @@ object Data {
       }
 
     def write(addr: Addr, word: Int, width: Int = 4): Either[String, MemWrite] =
-      if((addr.value < 0) || ((addr.value + width) >= 4100))
+      if((addr.value < 0) || ((addr.value + width) >= 410000))
         Left(s"attempted to write to illegal address ${addr.show}")
       else {
         (0 until width).foreach{ byteNumber =>
@@ -121,6 +124,10 @@ object Data {
       val word = (0 until 4).map(byteNumber => bytes(byteNumber) << byteNumber).reduceLeft(_|_)
       (Addr(idx*4), word)
     }.toMap
+
+    override def clone: DMem = {
+      new DMem(repr.clone)
+    }
   }
 
   object Regs{
@@ -130,7 +137,7 @@ object Data {
     }
   }
   object DMem{
-    def empty: DMem = new DMem(List.fill(4100)(0.toByte).toArray)
+    def empty: DMem = new DMem(List.fill(410000)(0.toByte).toArray)
     def apply(settings: List[TestSetting]): DMem = {
       val m = DMem.empty
       settings.foreach(m.apply)
@@ -258,10 +265,9 @@ object Data {
     * and assembling the program.
     */
   case class Program(
-    ops      : List[SourceInfo[Op]],
-    settings : List[TestSetting],
-    labelMap : Map[Label, Addr],
-    maxSteps : Int = 5000
+    ops         : List[SourceInfo[Op]],
+    settings    : List[TestSetting],
+    labelMap    : Map[Label, Addr],
   ){
 
    def imem: Map[Addr, Op] =
@@ -271,8 +277,8 @@ object Data {
     /**
       * Loads a VM which can be run to get a trace.
       */
-   def vm: VM =
-     VM(settings, imem, labelMap)
+   def vm(breakPoints: Set[Addr] = Set[Addr]()): VM =
+     VM(settings, imem, labelMap, breakPoints)
 
 
     /**
@@ -297,13 +303,16 @@ object Data {
     /**
       * Returns the binary code and the execution trace or an error for convenient error checking.
       */
-    def validate: Either[String, (Map[Addr, Int], ExecutionTrace[VM])] = machineCode.flatMap{ binary =>
+    def validate(breakPoints: Set[Addr], maxSteps: Int): Either[String, (Map[Addr, Int], ExecutionTrace[VM])] = machineCode.flatMap{ binary =>
       val uk = "UNKNOWN"
-      val (finish, trace) = VM.run(maxSteps, vm)
+      val (finish, trace) = VM.run(maxSteps, vm(breakPoints))
       finish match {
-        case Failed(s, addr) => Left(s"VM failed with error $s at address $addr\nSource line:\n${sourceMap.lift(addr).getOrElse(uk)}")
-        case Timeout => Left(s"VM timed out after $maxSteps steps. This should not happen with the supplied tests")
+        case Failed(s, addr) => Right(binary, trace)
+        case Timeout => Right(binary, trace)
         case Success => Right(binary, trace)
+        // case Failed(s, addr) => Left(s"VM failed with error $s at address $addr\nSource line:\n${sourceMap.lift(addr).getOrElse(uk)}")
+        // case Timeout => Left(s"VM timed out after $maxSteps steps. This should not happen with the supplied tests")
+        // case Success => Right(binary, trace)
       }
     }
 

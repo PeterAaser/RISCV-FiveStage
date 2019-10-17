@@ -50,6 +50,7 @@ object Parser {
     stringWs("bnez")  ~> branchZ.mapN{Branch.bnez},
     stringWs("beqz")  ~> branchZ.mapN{Branch.beqz},
     stringWs("blez")  ~> branchZ.mapN{Branch.blez},
+    stringWs("bgtz")  ~> branchZ.mapN{Branch.bgtz},
 
 
 
@@ -66,6 +67,7 @@ object Parser {
     stringWs("sra")   ~> arith.mapN{Arith.sra},
 
     stringWs("slt")   ~> arith.mapN{Arith.slt},
+    stringWs("sgt")   ~> arith.mapN{ case(x,y,z) => Arith.slt(x,z,y)},
     stringWs("sltu")  ~> arith.mapN{Arith.sltu},
 
     // pseudos
@@ -106,6 +108,7 @@ object Parser {
     ////////////////////////////////////////////
     //// Jumps
     stringWs("jalr")  ~> (reg <~ sep, reg <~ sep, label).mapN{JALR.apply},
+    stringWs("jalr")  ~> (reg).map(x => JALR(x, x, "zero")),
     stringWs("jal")   ~> (reg <~ sep, label).mapN{JAL.apply},
 
     // pseudos
@@ -151,6 +154,11 @@ object Parser {
       ArithImm.add(rd, rd, lo),
       LUI(rd, if(lo>0) hi else hi+1),
     )}}.map(_.widen[Op]),
+    stringWs("tail") ~> label.map{ l =>
+      List(
+        AUIPC(6, 0),
+        JALR(0, 6, l)
+      )}.map(_.widen[Op]),
   ).reduce(_|_)
 
 
@@ -214,7 +222,7 @@ object Parser {
         * jumps to a predetermined special done address 
         */
         val hasDONEinstruction = ops.map(_.run._2).contains(DONE)
-        val done = copy(settings = REGSET(Reg("sp"), 1024) :: settings, ops = ops.reverse, errors = errors.reverse)
+        val done = copy(settings = REGSET(Reg("sp"), 16000) :: settings, ops = ops.reverse, errors = errors.reverse)
 
         val withReturnAddress = if(hasDONEinstruction){
           done

@@ -48,9 +48,10 @@ object Ops {
     def bleu(rs1: Int, rs2: Int, dst: Label) = Branch(Reg(rs2), Reg(rs1), dst, GEU)
     def bgtu(rs1: Int, rs2: Int, dst: Label) = Branch(Reg(rs2), Reg(rs1), dst, LTU)
 
-    def beqz(rs1: Int, dst: Label) = Branch(Reg(rs1), Reg(0), dst, EQ)
-    def bnez(rs1: Int, dst: Label) = Branch(Reg(rs1), Reg(0), dst, NE)
-    def blez(rs1: Int, dst: Label) = Branch(Reg(rs1), Reg(0), dst, LT)
+    def beqz(rs1: Int, dst: Label) = Branch(Reg(rs1), Reg(0),   dst, EQ)
+    def bnez(rs1: Int, dst: Label) = Branch(Reg(rs1), Reg(0),   dst, NE)
+    def blez(rs1: Int, dst: Label) = Branch(Reg(rs1), Reg(0),   dst, LT)
+    def bgtz(rs2: Int, dst: Label) = Branch(Reg(0  ), Reg(rs2), dst, LT)
   }
 
   sealed trait someDecorator
