@@ -164,54 +164,7 @@ object TestRunner {
 
         helper(events, initState)
       }
-
-
-      def nBitPredictor(events: List[BranchEvent]): Int = {
-
-        case class nBitPredictor(
-          values          : List[Int],
-          predictionRules : List[Boolean],
-          transitionRules : Int => Boolean => Int,
-        ){
-          val slots = values.size
-
-          def predict(pc: Int): Boolean = predictionRules(values(pc.getTag(slots)))
-
-          def update(pc: Int, taken: Boolean): nBitPredictor = {
-            val current = values(pc.getTag(slots))
-            copy(values = values.updated(pc.getTag(slots), transitionRules(current)(taken)))
-          }
-        }
-
-        val initPredictor = nBitPredictor(
-          List.fill(4)(0),
-          List(
-            false,
-            false,
-            true,
-            true,
-          ),
-          r => r match {
-            case 0 => taken => if(taken) 1 else 0
-            case 1 => taken => if(taken) 3 else 0
-            case 2 => taken => if(taken) 3 else 0
-            case 3 => taken => if(taken) 3 else 2
-          }
-        )
-
-        events.foldLeft((0, initPredictor)){ case(((acc, bp), event)) => event match {
-          case Taken(pc, _) if bp.predict(pc)  => (acc,     bp.update(pc, true))
-          case Taken(pc, _)                    => (acc + 1, bp.update(pc, false))
-          case NotTaken(pc) if !bp.predict(pc) => (acc,     bp.update(pc, false))
-          case NotTaken(pc)                    => (acc + 1, bp.update(pc, true))
-        }}._1
-      }
-
-
-
       say(OneBitInfiniteSlots(events))
-      say(nBitPredictor(events))
-
     }
 
     true
