@@ -54,7 +54,7 @@ object Manifest {
 class ProfileBranching extends FlatSpec with Matchers {
   it should "profile some branches" in {
     TestRunner.profileBranching(
-      Manifest.singleTestOptions.copy(testName = "branchProfiling.s")
+      Manifest.singleTestOptions.copy(testName = "branchProfiling.s", maxSteps = 50000)
     ) should be(true)
   }
 }
@@ -62,7 +62,7 @@ class ProfileBranching extends FlatSpec with Matchers {
 class ProfileCache extends FlatSpec with Matchers {
   it should "profile a cache" in {
     TestRunner.profileCache(
-      Manifest.singleTestOptions.copy(testName = "convolution.s")
+      Manifest.singleTestOptions.copy(testName = "convolution.s", maxSteps = 50000)
     ) should be(true)
   }
 }
