@@ -205,6 +205,21 @@
 
    With a 2 bit 8 slot scheme, how many mispredicts will happen?
    Answer with a number.
+   
+   Hint: Use the getTag method defined on int (in DataTypes.scala) to get the tag for an address.
+   #+BEGIN_SRC scala
+   val slots = 8
+   say(0x1C40.getTag(slots)) // prints 0
+   say(0x1C44.getTag(slots)) // prints 1
+   say(0x1C48.getTag(slots)) // prints 2
+   say(0x1C4C.getTag(slots)) // prints 3
+   say(0x1C50.getTag(slots)) // prints 4
+   say(0x1C54.getTag(slots)) // prints 5
+   say(0x1C58.getTag(slots)) // prints 6
+   say(0x1C5C.getTag(slots)) // prints 7
+   say(0x1C60.getTag(slots)) // prints 0 (thus conflicts with 0x1C40)
+   #+END_SRC
+   
 
 * Question 5 - Cache profiling
   Unlike our design which has a very limited memory pool, real designs have access to vast amounts of memory, offset
