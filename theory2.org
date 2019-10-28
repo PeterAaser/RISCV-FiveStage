@@ -230,3 +230,5 @@
    + Block size is 4 words (128 bits)
    + Is write-through write no-allocate
    + Eviction policy is LRU (least recently used)
+
+   Your answer should be the number of cache miss latency cycles when using this cache.

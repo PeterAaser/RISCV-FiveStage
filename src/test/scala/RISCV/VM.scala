@@ -43,7 +43,7 @@ case class VM(
       val takeBranch = regs.compare(op.rs1, op.rs2, op.comp.run)
       if(takeBranch){
         val nextVM = copy(pc = addr)
-        jump(nextVM, PcUpdateBranch(nextVM.pc))
+        jump(nextVM, PcUpdateBranch(pc, nextVM.pc))
       }
       else {
         step(this, PcUpdateNoBranch(this.pc + Addr(4)))

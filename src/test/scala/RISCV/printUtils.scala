@@ -40,10 +40,10 @@ object PrintUtils {
       case MemRead(addr, word)  => fansi.Color.Red(f"M[${addr.show}] -> 0x${word.hs}")
 
       // addr is the target address
-      case PcUpdateJALR(addr)   => fansi.Color.Green(s"PC updated to ${addr.show} via JALR")
-      case PcUpdateJAL(addr)    => fansi.Color.Magenta(s"PC updated to ${addr.show} via JAL")
-      case PcUpdateBranch(addr)   => fansi.Color.Yellow(s"PC updated to ${addr.show} via Branch")
-      case PcUpdateNoBranch(addr) => fansi.Color.Yellow(s"PC updated to ${addr.show}, skipping a Branch")
+      case PcUpdateJALR(addr)       => fansi.Color.Green(s"PC updated to ${addr.show} via JALR")
+      case PcUpdateJAL(addr)        => fansi.Color.Magenta(s"PC updated to ${addr.show} via JAL")
+      case PcUpdateBranch(from, to) => fansi.Color.Yellow(s"PC updated to ${to.show} via Branch")
+      case PcUpdateNoBranch(addr)   => fansi.Color.Yellow(s"PC updated to ${addr.show}, skipping a Branch")
     }
   }
 

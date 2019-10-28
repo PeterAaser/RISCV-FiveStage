@@ -111,12 +111,12 @@ object TestRunner {
     } yield {
 
       sealed trait BranchEvent
-      case class Taken(addr: Int) extends BranchEvent
-      case class NotTaken(addr: Int) extends BranchEvent
+      case class Taken(from: Int, to: Int) extends BranchEvent { override def toString = s"Taken      ${from.hs}\t${to.hs}" }
+      case class NotTaken(addr: Int) extends BranchEvent { override def toString =       s"Not Taken  ${addr.hs}" }
 
       val events: List[BranchEvent] = trace.flatMap(_.event).collect{
-        case PcUpdateBranch(x) => Taken(x.value)
-        case PcUpdateNoBranch(x) => NotTaken(x.value)
+        case PcUpdateBranch(from, to) => Taken(from.value, to.value)
+        case PcUpdateNoBranch(at) => NotTaken(at.value)
       }
 
 
@@ -125,6 +125,9 @@ object TestRunner {
         * of slots
         */
       def OneBitInfiniteSlots(events: List[BranchEvent]): Int = {
+
+        // Uncomment to take a look at the event log
+        // say(events.mkString("\n","\n","\n"))
 
         // Helper inspects the next element of the event list. If the event is a mispredict the prediction table is updated
         // to reflect this.
@@ -145,24 +148,69 @@ object TestRunner {
 	    // `case Constructor(arg1, arg2) :: t => if(p(arg1, arg2))`
 	    // means we want to match a list whose first element is of type Constructor while satisfying some predicate p,
 	    // called an if guard.
-            case Taken(addr)    :: t if( predictionTable(addr)) => helper(t, predictionTable)
-            case Taken(addr)    :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, true))
-            case NotTaken(addr) :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
-            case NotTaken(addr) :: t if( predictionTable(addr)) => helper(t, predictionTable)
+            case Taken(from, to) :: t if( predictionTable(from)) => helper(t, predictionTable)
+            case Taken(from, to) :: t if(!predictionTable(from)) => 1 + helper(t, predictionTable.updated(from, true))
+            case NotTaken(addr)  :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
+            case NotTaken(addr)  :: t if( predictionTable(addr)) => helper(t, predictionTable)
             case _ => 0
           }
         }
 
         // Initially every possible branch is set to false since the initial state of the predictor is to assume branch not taken
         def initState = events.map{
-          case Taken(addr)    => (addr, false)
-          case NotTaken(addr) => (addr, false)
+          case Taken(from, addr) => (from, false)
+          case NotTaken(addr)    => (addr, false)
         }.toMap
 
         helper(events, initState)
       }
 
+
+      def nBitPredictor(events: List[BranchEvent]): Int = {
+
+        case class nBitPredictor(
+          values          : List[Int],
+          predictionRules : List[Boolean],
+          transitionRules : Int => Boolean => Int,
+        ){
+          val slots = values.size
+
+          def predict(pc: Int): Boolean = predictionRules(values(pc.getTag(slots)))
+
+          def update(pc: Int, taken: Boolean): nBitPredictor = {
+            val current = values(pc.getTag(slots))
+            copy(values = values.updated(pc.getTag(slots), transitionRules(current)(taken)))
+          }
+        }
+
+        val initPredictor = nBitPredictor(
+          List.fill(4)(0),
+          List(
+            false,
+            false,
+            true,
+            true,
+          ),
+          r => r match {
+            case 0 => taken => if(taken) 1 else 0
+            case 1 => taken => if(taken) 3 else 0
+            case 2 => taken => if(taken) 3 else 0
+            case 3 => taken => if(taken) 3 else 2
+          }
+        )
+
+        events.foldLeft((0, initPredictor)){ case(((acc, bp), event)) => event match {
+          case Taken(pc, _) if bp.predict(pc)  => (acc,     bp.update(pc, true))
+          case Taken(pc, _)                    => (acc + 1, bp.update(pc, false))
+          case NotTaken(pc) if !bp.predict(pc) => (acc,     bp.update(pc, false))
+          case NotTaken(pc)                    => (acc + 1, bp.update(pc, true))
+        }}._1
+      }
+
+
+
       say(OneBitInfiniteSlots(events))
+      say(nBitPredictor(events))
 
     }
 

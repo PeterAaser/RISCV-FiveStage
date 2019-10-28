@@ -37,11 +37,11 @@ object Data {
   case class MemRead(addr: Addr, word: Int)  extends ExecutionEvent
 
   // addr is the target address
-  case class PcUpdateJALR(addr: Addr)        extends ExecutionEvent
-  case class PcUpdateJAL(addr: Addr)         extends ExecutionEvent
-  case class PcUpdateBranch(addr: Addr)   extends ExecutionEvent
-  case class PcUpdateNoBranch(addr: Addr) extends ExecutionEvent
-  case class PcUpdate(addr: Addr)            extends ExecutionEvent
+  case class PcUpdateJALR(addr: Addr)                 extends ExecutionEvent
+  case class PcUpdateJAL(addr: Addr)                  extends ExecutionEvent
+  case class PcUpdateBranch(addr: Addr, target: Addr) extends ExecutionEvent
+  case class PcUpdateNoBranch(addr: Addr)             extends ExecutionEvent
+  case class PcUpdate(addr: Addr)                     extends ExecutionEvent
 
   case class ExecutionTraceEvent(pc: Addr, event: ExecutionEvent*){ override def toString(): String = s"$pc: " + event.toList.mkString(", ") }
   type ExecutionTrace[A] = Writer[List[ExecutionTraceEvent], A]
@@ -169,6 +169,17 @@ object Data {
     }
 
     def log2: Int = math.ceil(math.log(i.toDouble)/math.log(2.0)).toInt
+
+    // Discards two lowest bits
+    def getTag(slots: Int): Int = {
+      val bitsLeft = 32 - (slots.log2 + 2)
+      val bitsRight = 32 - slots.log2
+      val leftShifted = i << bitsLeft
+      val rightShifted = leftShifted >>> bitsRight
+      // say(i)
+      // say(rightShifted)
+      rightShifted
+    }
   }
 
   implicit class StringOps(s: String) {
