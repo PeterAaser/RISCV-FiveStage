@@ -150,9 +150,9 @@ object TestRunner {
 	    // called an if guard.
             case Taken(from, to) :: t if( predictionTable(from)) => helper(t, predictionTable)
             case Taken(from, to) :: t if(!predictionTable(from)) => 1 + helper(t, predictionTable.updated(from, true))
-            case NotTaken(addr)  :: t if(!predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
-            case NotTaken(addr)  :: t if( predictionTable(addr)) => helper(t, predictionTable)
-            case _ => 0
+            case NotTaken(addr)  :: t if( predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
+            case NotTaken(addr)  :: t if(!predictionTable(addr)) => helper(t, predictionTable)
+            case Nil => 0
           }
         }
 
@@ -164,8 +164,10 @@ object TestRunner {
 
         helper(events, initState)
       }
+
       say(OneBitInfiniteSlots(events))
     }
+
 
     true
   }

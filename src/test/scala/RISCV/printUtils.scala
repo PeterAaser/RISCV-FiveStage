@@ -101,6 +101,7 @@ object PrintUtils {
     def binary: String = String.format("%" + 32 + "s", i.toBinaryString)
       .replace(' ', '0').grouped(4)
       .map(x => x + "  ").mkString
+    def binary(n: Int): String = String.format("%" + n + "s", i.toBinaryString).replace(' ', '0')
   }
 
 
