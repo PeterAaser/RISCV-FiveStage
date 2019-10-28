@@ -31,7 +31,8 @@ object Manifest {
     printMergedTrace   = true,
     nopPadded          = nopPadded,
     breakPoints        = Nil, // not implemented
-    testName           = singleTest)
+    testName           = singleTest,
+    maxSteps           = 15000)
 
 
   val allTestOptions: String => TestOptions = name => TestOptions(
