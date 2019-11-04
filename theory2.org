@@ -105,6 +105,8 @@
   10     ||  YES            ||  11                   ||  01                      ||
   11     ||  YES            ||  11                   ||  10                      ||
   #+end_src
+  
+  (This is known as a saturating 2bit counter, it is *not* the same scheme as in the lecture slides)
 
   At some point during execution the program counter is ~0xc~ and the branch predictor table looks like this:
   #+begin_src text
