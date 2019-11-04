@@ -247,8 +247,8 @@
 ** Your task
    Your job is to implement a model that tests how many delay cycles will occur for a cache which:
    + Follows a 2-way associative scheme
-   + Block size is 4 words (128 bits)
-   + Is write-through write no-allocate
+   + Block size is 4 words (128 bits) (total cache size: a whopping 256 bits)
+   + Is write-through write no-allocate (this means that you can ignore stores, only loads will affect the cache)
    + Eviction policy is LRU (least recently used)
 
    Your answer should be the number of cache miss latency cycles when using this cache.
