@@ -233,7 +233,7 @@
 
   We will therefore assume the following:
   + Reads from main memory takes 5 cycles
-  + cache has a total storage of 32 words (1024 bits)
+  + cache has a total storage of 8 words (256 bits)
   + cache reads work as they do now (i.e no additional latency)
 
   For this exercise you will write a program that parses a log of memory events, similar to previous task
@@ -249,8 +249,29 @@
 ** Your task
    Your job is to implement a model that tests how many delay cycles will occur for a cache which:
    + Follows a 2-way associative scheme
-   + Block size is 4 words (128 bits) (total cache size: a whopping 256 bits)
+   + set size is 4 words (128 bits) (total cache size: a whopping 256 bits)
+   + Block size is 1 word (32 bits) meaning that we *do not need a block offset*.
    + Is write-through write no-allocate (this means that you can ignore stores, only loads will affect the cache)
    + Eviction policy is LRU (least recently used)
+     
+   In the typical cache each block has more than 32 bits, requiring an offset, however the
+   simulated cache does not.
+   This means that the simulated cache has two sets of 4 words, greatly reducing the complexity
+   of your implementation.
+   
+   Additionally, assume that writes does not change the the LRU counter. 
+   This means that that your cache will only consider which value was most recently loaded,
+   not written.
+   It's not realistic, but it allows you to completely disregard write events (you can
+   just filter them out if you want.)
 
    Your answer should be the number of cache miss latency cycles when using this cache.
+
+*** Further study
+    If you have the time I strongly encourage you to experiment with a larger cache with bigger
+    block sizes, forcing you to implement the additional complexity of block offsets.
+    Likewise, by trying a different scheme than write-through no-allocate you will get a much
+    better grasp on how exactly the cache works.
+    This is *not* a deliverable, just something I encourage you to tinker with to get a better
+    understanding.
+   
