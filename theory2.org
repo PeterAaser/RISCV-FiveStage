@@ -203,7 +203,7 @@
    For this task it is necessary to use something more sophisticated than ~Map[(Int, Boolean)]~ to represent
    your branch predictor model.
 
-   The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileTest.
+   The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileBranching.
 
    With a 2 bit 8 slot scheme, how many mispredicts will happen?
    Answer with a number.
