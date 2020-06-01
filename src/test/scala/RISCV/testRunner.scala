@@ -50,7 +50,8 @@ object TestRunner {
         binary.toList.sortBy(_._1.value).map(_._2),
         program.settings,
         finalVM.pc,
-        testOptions.maxSteps)
+        testOptions.maxSteps,
+        testOptions.testName)
     } yield {
       val traces = mergeTraces(trace, chiselTrace).map(x => printMergedTraces((x), program))
 

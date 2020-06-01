@@ -159,12 +159,18 @@ object ChiselTestRunner {
     binary          : List[Int],
     settings        : List[TestSetting],
     terminalAddress : Addr,
-    maxSteps        : Int): Either[String, (Option[String], List[CircuitTrace])] = {
+    maxSteps        : Int,
+    testName        : String): Either[String, (Option[String], List[CircuitTrace])] = {
 
     var sideEffectExtravaganza: Option[(Option[String], List[CircuitTrace])] = None
 
     val error: Either[String, Boolean] = scala.util.Try {
-      chisel3.iotesters.Driver(() => new Tile(), "treadle") { c =>
+      chisel3.iotesters.Driver.execute(Array(
+                                         "--generate-vcd-output", "on",
+                                         "--backend-name", "treadle",
+                                         "--target-dir", "waveforms",
+                                         "--top-name", testName
+                                       ), () => new Tile) { c =>
         new PeekPokeTester(c) {
           val testRunner = new ChiselTestRunner(
             binary,
