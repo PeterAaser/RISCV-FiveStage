@@ -191,6 +191,11 @@
       This option attempts to synchronize the execution traces as best as it can, however
       once your processor design derails this becomes impossible, leading to rather
       nonsensical output.
+      The output should look like this (picture is from exercise 2, without NOP padding)
+      #+attr_html: :width 300px
+      #+attr_latex: :width 3000px
+      [[./Images/merged.png]]
+
       Instructions that were only executed by either VM or Your design is colored red or
       blue.
       
