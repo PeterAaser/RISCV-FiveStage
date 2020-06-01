@@ -55,79 +55,104 @@
    the files included in the skeleton, and what, if anything should be added.
 
    + [[./src/main/scala/Tile.scala]]
+     
      This is the top level module for the system as a whole. This is where the test
      harness accessses your design, providing the necessary IO. 
+     
      *You should not modify this module for other purposes than debugging.*
 
    + [[./src/main/scala/CPU.scala]]
+     
      This is the top level module for your processor.
      In this module the various stages and barriers that make up your processor
      should be declared and wired together.
      Some of these modules have already been declared in order to wire up the
      debugging logic for your test harness.
      This file corresponds to the high-level overview in its entirety.
+     
      *This module is intended to be further fleshed out by you.*
+     
      As you work with this module, try keeping logic to a minimum to help readability.
      If you end up with a lot of signal select logic, consider moving that to a separate
      module.
      
    + [[./src/main/scala/IF.scala]]
+     
      This is the instruction fetch stage.
      In this stage instruction fetching should happen, meaning you will have to
      add logic for handling branches, jumps, and for exercise 2, stalls.
      The reason this module is already included is that it contains the instruction
      memory, described next which is heavily coupled to the testing harness.
+     
      *This module is intended to be further fleshed out by you.*
      
    + [[./src/main/scala/IMem.scala]]
+     
      This module contains the instruction memory for your processor.
      Upon testing the test harness loads your program into the instruction memory,
      freeing you from the hassle.
+     
      *You should not modify this module for other purposes than maaaaybe debugging.*
 
    + [[./src/main/scala/ID.scala]]
+     
      The instruction decode stage.
      The reason this module is included is that the registers reside here, thus
      for the test harness to work it must be wired up to the register unit to
      record its state updates.
+     
      *This module is intended to be further fleshed out by you.*
      
    + [[./src/main/scala/Registers.scala]]
+     
      Contains the registers for your processor. Note that the zero register is alredy
      disabled, you do not need to do this yourself.
      The test harness ensures that all register updates are recorded.
+     
      *You should not modify this module for other purposes than maaaaybe debugging.*
      
    + [[./src/main/scala/MEM.scala]]
+     
      Like ID and IF, the MEM skeleton module is included so that the test harness
      can set up and monitor the data memory
+     
      *This module is intended to be further fleshed out by you.*
 
    + [[./src/main/scala/DMem.scala]]
+     
      Like the registers and Imem, the DMem is already implemented.
+     
      *You should not modify this module for other purposes than maaaaybe debugging.*
      
    + [[./src/main/scala/Const.scala]]
+     
      Contains helpful constants for decoding, used by the decoder which is provided.
+     
      *This module may be fleshed out further by you if you so choose.*
 
    + [[./src/main/scala/Decoder.scala]]
+     
      The decoder shows how to conveniently demux the instruction.
      In the provided ID.scala file a decoder module has already been instantiated.
      You should flesh it out further.
      You may find it useful to alter this module, especially in exercise 2.
+     
      *This module should be further fleshed out by you.*
 
    + [[./src/main/scala/ToplevelSignals.scala]]
+     
      Contains helpful constants. 
      You should add your own constants here when you find the need for them.
      You are not required to use it at all, but it is very helpful.
+     
      *This module can be further fleshed out by you.*
      
    + [[./src/main/scala/SetupSignals.scala]]
+     
      You should obviously not modify this file.
      You may choose to create a similar file for debug signals, modeled on how
      the test harness is built.
+     
      *You should not modify this module at all.*
    
 
