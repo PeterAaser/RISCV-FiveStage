@@ -8,7 +8,7 @@ import chisel3.util.ListLookup
   * This module is mostly done, but you will have to fill in the blanks in opcodeMap.
   * You may want to add more signals to be decoded in this module depending on your
   * design if you so desire.
-  * 
+  *
   * In the "classic" 5 stage decoder signals such as op1select and immType
   * are not included, however I have added them to my design, and similarily you might
   * find it useful to add more
@@ -36,12 +36,12 @@ class Decoder() extends Module {
   val Y = 1.asUInt(1.W)
 
   /**
-    * In scala we sometimes (ab)use the `->` operator to create tuples. 
+    * In scala we sometimes (ab)use the `->` operator to create tuples.
     * The reason for this is that it serves as convenient sugar to make maps.
-    * 
+    *
     * This doesn't matter to you, just fill in the blanks in the style currently
     * used, I just want to demystify some of the scala magic.
-    * 
+    *
     * `a -> b` == `(a, b)` == `Tuple2(a, b)`
     */
   val opcodeMap: Array[(BitPat, List[UInt])] = Array(

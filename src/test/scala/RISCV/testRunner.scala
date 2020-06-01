@@ -136,18 +136,18 @@ object TestRunner {
           events match {
 
             // Scala syntax for matching a list with a head element of some type and a tail
-	    // `case h :: t =>`
-	    // means we want to match a list with at least a head and a tail (tail can be Nil, so we
-	    // essentially want to match a list with at least one element)
-	    // h is the first element of the list, t is the remainder (which can be Nil, aka empty)
+	          // `case h :: t =>`
+	          // means we want to match a list with at least a head and a tail (tail can be Nil, so we
+	          // essentially want to match a list with at least one element)
+	          // h is the first element of the list, t is the remainder (which can be Nil, aka empty)
 
-	    // `case Constructor(arg1, arg2) :: t => `
-	    // means we want to match a list whose first element is of type Constructor, giving us access to its internal
-	    // values.
+	          // `case Constructor(arg1, arg2) :: t => `
+	          // means we want to match a list whose first element is of type Constructor, giving us access to its internal
+	          // values.
 
-	    // `case Constructor(arg1, arg2) :: t => if(p(arg1, arg2))`
-	    // means we want to match a list whose first element is of type Constructor while satisfying some predicate p,
-	    // called an if guard.
+	          // `case Constructor(arg1, arg2) :: t => if(p(arg1, arg2))`
+	          // means we want to match a list whose first element is of type Constructor while satisfying some predicate p,
+	          // called an if guard.
             case Taken(from, to) :: t if( predictionTable(from)) => helper(t, predictionTable)
             case Taken(from, to) :: t if(!predictionTable(from)) => 1 + helper(t, predictionTable.updated(from, true))
             case NotTaken(addr)  :: t if( predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
