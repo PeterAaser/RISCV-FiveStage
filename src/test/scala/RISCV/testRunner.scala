@@ -23,6 +23,7 @@ case class TestOptions(
   printVMtrace       : Boolean,
   printVMfinal       : Boolean,
   printMergedTrace   : Boolean,
+  printBinary        : Boolean,
   nopPadded          : Boolean,
   breakPoints        : List[Int], // Not implemented
   testName           : String,
@@ -35,7 +36,8 @@ case class TestResult(
   program    : String,
   vmTrace    : String,
   vmFinal    : String,
-  sideBySide : String
+  sideBySide : String,
+  binary     : String
 )
 
 object TestRunner {
@@ -59,6 +61,7 @@ object TestRunner {
       val vmTraceString = printVMtrace(trace, program)
       val vmFinalState = finalVM.regs.show
       val traceString = printLogSideBySide(trace, chiselTrace, program)
+      val binaryString = printBinary(binary)
 
       val regError = compareRegs(trace, chiselTrace)
       val memError = compareMem(trace, chiselTrace)
@@ -69,7 +72,8 @@ object TestRunner {
         programString,
         vmTraceString,
         vmFinalState.toString,
-        traceString)
+        traceString,
+        binaryString)
     }
 
     testResults.left.foreach{ error =>
@@ -79,15 +83,16 @@ object TestRunner {
     testResults.map{ testResults =>
       val successful = List(testResults.regError, testResults.memError).flatten.headOption.map(_ => false).getOrElse(true)
       if(successful)
-        say(s"${testOptions.testName} succesful")
+        sayGreen(s"${testOptions.testName} succesful")
       else
-        say(s"${testOptions.testName} failed")
+        sayRed(s"${testOptions.testName} failed")
 
       if(testOptions.printIfSuccessful && successful){
         if(testOptions.printParsedProgram) say(testResults.program)
         if(testOptions.printVMtrace)       say(testResults.vmTrace)
         if(testOptions.printVMfinal)       say(testResults.vmFinal)
         if(testOptions.printMergedTrace)   say(testResults.sideBySide)
+        if(testOptions.printBinary)        say(testResults.binary)
       }
       else{
         if(testOptions.printErrors){
@@ -98,6 +103,7 @@ object TestRunner {
         if(testOptions.printVMtrace)       say(testResults.vmTrace)
         if(testOptions.printVMfinal)       say(testResults.vmFinal)
         if(testOptions.printMergedTrace)   say(testResults.sideBySide)
+        if(testOptions.printBinary)        say(testResults.binary)
       }
       successful
     }.toOption.getOrElse(false)
