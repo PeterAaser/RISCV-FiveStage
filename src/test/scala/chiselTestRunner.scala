@@ -142,7 +142,7 @@ private class ChiselTestRunner (
 
   // After finishing, let the circuit run until all updates can be committed.
   private def flush: List[CircuitTrace] =
-    (0 to 3).map(_ => stepOne).reverse.toList
+    (0 to 4).map(_ => stepOne).reverse.toList
 
   /**
     * Run the entire shebang

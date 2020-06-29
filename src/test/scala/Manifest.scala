@@ -1,4 +1,5 @@
 package FiveStage
+
 import org.scalatest.{Matchers, FlatSpec}
 import cats._
 import cats.implicits._
@@ -20,7 +21,7 @@ object Manifest {
 
   val singleTest = "forward2.s"
 
-  val nopPadded = true
+  val nopPadded = false
 
   val singleTestOptions = TestOptions(
     printIfSuccessful  = true,
@@ -53,18 +54,15 @@ object Manifest {
 
 class ProfileBranching extends FlatSpec with Matchers {
   it should "profile some branches" in {
-    TestRunner.profileBranching(
-      Manifest.singleTestOptions.copy(testName = "branchProfiling.s", maxSteps = 50000)
+    BranchProfiler.profileBranching(
+      Manifest.singleTestOptions.copy(testName = "branchProfiling.s", maxSteps = 150000)
     ) should be(true)
   }
 }
 
 class ProfileCache extends FlatSpec with Matchers {
   it should "profile a cache" in {
-    say("Warning, this test takes forever to run! 2 minutes on my machine at least.")
-    say("This happens due to the less than optimal way of storing the update log. Sorry I guess")
-    say("You probably want to debug this with a smaller program")
-    TestRunner.profileCache(
+    CacheProfiler.profileCache(
       Manifest.singleTestOptions.copy(testName = "convolution.s", maxSteps = 150000)
     ) should be(true)
   }

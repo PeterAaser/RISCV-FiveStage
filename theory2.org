@@ -1,36 +1,55 @@
-* Question 1 - Hazards
-  For the following programs describe each hazard with type (data or control), line number and a
-  small (max one sentence) description
+* Question 0 - Testing hazards
+  This question is mandatory, but rewards no points (not directly at least).
 
-** program 1
-  #+begin_src asm
-    addi t0,   zero,  10
-    addi t1,   zero,  20
-  L2:
-    sub  t1,   t1,    t0
-    beq  t1,   zero, .L2
-    jr   ra
-  #+end_src
+  The tests found in the testing framework are useful for testing a fully working processor, however it
+  leaves much to be desired for when you actually want to design one from whole cloth.
+
+  To rectify this, you should write some tests of your own that should serve as a minimal case for various
+  hazards that you will encounter. You do not need to deliver anything here, but I expect you to have
+  these tests if you ask me for help debugging your design during lab hours.
+  (You can of course come to lab hours if you're having trouble writing these tests)
 
 
-** program 2
-  #+begin_src asm
-    addi t0,   zero,  10
-    lw   t0,   10(t0)
-    beq  t0,   zero,  .L3
-    jr   ra
-  #+end_src
+** Forwarding
+   The tests in forward1.s and forward2.s are automatically generated, long, and non-specific,
+   thus not very suited for debugging.
+
+   You should write one (or more) test(s) that systematically expose your processor to dependency
+   hazards, including instructions that:
+   + Needs forwarding from MEM and WB (i.e dependencies with NOPs between them).
+   + Exposes results that should *not* be forwarded due to regWrite being false.
+   + Writes and reads to/from the zero register.
 
 
-** program 3
-  #+begin_src asm
-  lw   t0,   0(t0)
-  lw   t1,   4(t0)
-  sw   t0,   8(t1)
-  lw   t1,   12(t0)
-  beq  t0,   t1,  .L3
-  jr   ra
-  #+end_src
+** Load freezes
+   Loads freezes are tricky since they have an interaction with the forwarding unit, often causing
+   bugs that appear with low frequency in the supplied test programs.
+
+   You should write tests (I suggest one test per case) that systematically expose your processor to
+   dependency hazards where one or more of the dependencies are memory accesses, including instructions that:
+   + Needs forwarding from MEM and WB where MEM, WB or both are load instructions.
+   + Exposes false dependencies from MEM and WB where one or more are loads.
+     For instance, consider ~addi x1, x1, 0x10~ in machine code with the rs2 field highlighted:
+     0x00a08093 = 0b00000000 | 10100 | 0001000000010010011
+     In this case there is a false dependency on x20 since x20 is only an artefact of the immediate
+     value which could cause an unecessary freeze.
+   + Writes and reads to/from the zero register, which could trigger an unecessary freeze
+   + Instructions that causes multiple freezes in a row.
+   + Instructions that causes multiple freezes in a row followed by an instruction with multiple
+     dependencies.
+
+
+** Control hazards
+   There are a lot of possible interactions when jumping and branching, you need to write tests
+   that ensures that instructions are properly bubbled if they shouldn't have been fetched.
+   You should also test for interactions between forwarding and freezing here, i.e what happens
+   when the address calculation relies on forwarded values? What happens if the forwarded value
+   comes from a load instruction necessitating a freeze?
+
+
+* TODO Question 1 - Hazards
+  Write programs here that are less of a crapshoot. Clarify dependency vs hazards etc etc and
+  *enforce* a format that is easy to grade.
 
 
 * Question 2 - Handling hazards
@@ -39,7 +58,7 @@
 
 ** Data hazards 1
    At some cycle the following instructions can be found in a 5 stage design:
-   
+
    #+begin_src text
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
@@ -52,13 +71,17 @@
    branch   = false     ||     branch   = true     ||      branch   = false
    jump     = false     ||     jump     = false    ||      jump     = false
    #+end_src
-   
+
    For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
-   
+   Answer should be on the form:
+
+   rs1: Narnia
+   rs2: Wikipedia
+
 ** Data hazards 2
 
    At some cycle the following instructions can be found in a 5 stage design:
-   
+
    #+begin_src text
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
@@ -73,11 +96,15 @@
    #+end_src
 
    For the operation currently in EX, from where (ID, MEM or WB) should the forwarder get data from for rs1 and rs2?
+   Answer should be on the form:
+
+   rs1: Random noise
+   rs2: WB (MEM if it's a tuesday)
 
 ** Data hazards 3
 
    At some cycle the following instructions can be found in a 5 stage design:
-   
+
    #+begin_src text
    EX:                  ||     MEM:                ||      WB:
    ---------------------||-------------------------||--------------------------
@@ -89,24 +116,26 @@
    memWrite = true      ||     memWrite = false    ||      memWrite = false
    branch   = false     ||     branch   = false    ||      branch   = false
    jump     = false     ||     jump     = false    ||      jump     = false
-
-   Should the forwarding unit issue a load hazard signal?
-   (Hint: what are the semantics of the instruction currently in EX stage?)
    #+end_src
 
+   Should the forwarding unit issue a load hazard signal? *This is a yes/no question*
+   (Hint: what are the semantics of the instruction currently in EX stage?)
+
 * Question 3 - Branch prediction
-  Consider a 2 bit branch predictor with only 4 slots for a 32 bit architecture (without BTB), where the decision to 
+  Consider a 2 bit branch predictor with only 4 slots for a 32 bit architecture (without BTB), where the decision to
   take a branch or not is decided in accordance to the following table:
   #+begin_src text
   state  ||  predict taken  ||  next state if taken  ||  next state if not taken ||
   =======||=================||=======================||==========================||
   00     ||  NO             ||  01                   ||  00                      ||
-  01     ||  NO             ||  10                   ||  00                      ||
-  10     ||  YES            ||  11                   ||  01                      ||
+  01     ||  NO             ||  11                   ||  00                      ||
+  10     ||  YES            ||  11                   ||  00                      ||
   11     ||  YES            ||  11                   ||  10                      ||
   #+end_src
-  
-  (This is known as a saturating 2bit counter, it is *not* the same scheme as in the lecture slides)
+
+  Which corresponds to this figure:
+  #+CAPTION: FSM of a 2 bit branch predictor. Note that it is not a 2bit saturating counter.
+  [[./Images/BranchPredictor.png]]
 
   At some point during execution the program counter is ~0xc~ and the branch predictor table looks like this:
   #+begin_src text
@@ -114,21 +143,34 @@
   ======||========
   00    ||  01
   01    ||  00
-  10    ||  11
-  11    ||  01
+  10    ||  01
+  11    ||  10
   #+end_src
 
   For the following program:
   #+begin_src asm
-  0xc  addi x1, x3, 10
-  0x10 add  x2, x1, x1
-  0x14 beq  x1, x2, .L1 
+  .L1:
+  0x0C addi x1, x1, 1
+  0x10 add  x2, x2, x1
+  0x14 bge  x2, x3, .L1
   0x18 j    .L2
+  .L3:
+  0x1C addi x2, x2, 0x10
+  0x20 slli x2, 0x4
+  0x24 jr   ra
   #+end_src
-  
-  Will the predictor predict taken or not taken for the beq instruction?
 
-* Question 4 - Benchmarking
+  At cycle 0 the state of the machine is as following:
+  #+begin_src text
+  PC = 0x0C
+  x1 = 0x0
+  x2 = 0x0
+  x3 = 0x7
+  #+end_src
+
+  At which cycle will the PC be 0x24 given a 2 cycle delay for mispredicts?
+
+* Question 4 - Benchmarking a branch profiler
   In order to gauge the performance increase from adding branch predictors it is necessary to do some testing.
   Rather than writing a test from scratch it is better to use the tester already in use in the test harness.
   When running a program the VM outputs a log of all events, including which branches have been taken and which
@@ -148,7 +190,7 @@
 
   To help you get started, I have provided you with much of the necessary code.
   In order to get an idea for how you should profile branch misses, consider the following profiler which calculates
-  misses for a processor with a branch predictor with a 1 bit predictor with infinite memory:
+  misses for a processor with a branch predictor with a 1 bit predictor with infinite slots:
 
   #+BEGIN_SRC scala
   def OneBitInfiniteSlots(events: List[BranchEvent]): Int = {
@@ -172,11 +214,11 @@
 	// `case Constructor(arg1, arg2) :: t => if(p(arg1, arg2))`
 	// means we want to match a list whose first element is of type Constructor while satisfying some predicate p,
 	// called an if guard.
-        case Taken(from, to) :: t if( predictionTable(from)) => helper(t, predictionTable)
-        case Taken(from, to) :: t if(!predictionTable(from)) => 1 + helper(t, predictionTable.updated(from, true))
-        case NotTaken(addr)  :: t if( predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
-        case NotTaken(addr)  :: t if(!predictionTable(addr)) => helper(t, predictionTable)
-        case _ => 0
+	case Taken(from, to) :: t if( predictionTable(from)) => helper(t, predictionTable)
+	case Taken(from, to) :: t if(!predictionTable(from)) => 1 + helper(t, predictionTable.updated(from, true))
+	case NotTaken(addr)  :: t if( predictionTable(addr)) => 1 + helper(t, predictionTable.updated(addr, false))
+	case NotTaken(addr)  :: t if(!predictionTable(addr)) => helper(t, predictionTable)
+	case _ => 0
       }
     }
 
@@ -207,7 +249,7 @@
 
    With a 2 bit 8 slot scheme, how many mispredicts will happen?
    Answer with a number.
-   
+
    Hint: Use the getTag method defined on int (in DataTypes.scala) to get the tag for an address.
    #+BEGIN_SRC scala
    val slots = 8
@@ -221,7 +263,7 @@
    say(0x1C5C.getTag(slots)) // prints 7
    say(0x1C60.getTag(slots)) // prints 0 (thus conflicts with 0x1C40)
    #+END_SRC
-   
+
 
 * Question 5 - Cache profiling
   Unlike our design which has a very limited memory pool, real designs have access to vast amounts of memory, offset
@@ -230,11 +272,6 @@
   your entire design.
   In order to investigate how caches can alter performance it is therefore necessary to make some rather
   unrealistic assumptions to see how different cache schemes impacts performance.
-
-  We will therefore assume the following:
-  + Reads from main memory takes 5 cycles
-  + cache has a total storage of 8 words (256 bits)
-  + cache reads work as they do now (i.e no additional latency)
 
   For this exercise you will write a program that parses a log of memory events, similar to previous task
   #+BEGIN_SRC scala
@@ -246,32 +283,13 @@
   def profile(events: List[MemoryEvent]): Int = ???
   #+END_SRC
 
-** Your task
-   Your job is to implement a model that tests how many delay cycles will occur for a cache which:
-   + Follows a 2-way associative scheme
-   + set size is 4 words (128 bits) (total cache size: a whopping 256 bits)
-   + Block size is 1 word (32 bits) meaning that we *do not need a block offset*.
-   + Is write-through write no-allocate (this means that you can ignore stores, only loads will affect the cache)
+** TODO Your task
+   Your job is to implement a *parameterised* model that tests how many delay cycles will occur for a cache with
+   the following configuration:
+   + Follows an n-way associative scheme (parameter)
+   + Is write-through write allocate.
    + Eviction policy is LRU (least recently used)
-     
-   In the typical cache each block has more than 32 bits, requiring an offset, however the
-   simulated cache does not.
-   This means that the simulated cache has two sets of 4 words, greatly reducing the complexity
-   of your implementation.
-   
-   Additionally, assume that writes does not change the the LRU counter. 
-   This means that that your cache will only consider which value was most recently loaded,
-   not written.
-   It's not realistic, but it allows you to completely disregard write events (you can
-   just filter them out if you want.)
 
-   Your answer should be the number of cache miss latency cycles when using this cache.
-
-*** Further study
-    If you have the time I strongly encourage you to experiment with a larger cache with bigger
-    block sizes, forcing you to implement the additional complexity of block offsets.
-    Likewise, by trying a different scheme than write-through no-allocate you will get a much
-    better grasp on how exactly the cache works.
-    This is *not* a deliverable, just something I encourage you to tinker with to get a better
-    understanding.
+   To make this task easier a data structure with stub methods has been implemented for you.
    
+   Answer by pasting the output from running the branchProfiler test.

@@ -176,8 +176,16 @@ object Data {
       val bitsRight = 32 - slots.log2
       val leftShifted = i << bitsLeft
       val rightShifted = leftShifted >>> bitsRight
-      // say(i)
-      // say(rightShifted)
+      rightShifted
+    }
+
+    // To get the entire word call with from = 31, to = 0
+    def bits(from: Int, to: Int): Int = {
+      val bitsLeft = 31 - from
+      val bitsRight = bitsLeft + to
+      val leftShifted = i << bitsLeft
+      val rightShifted = leftShifted >>> bitsRight
+
       rightShifted
     }
   }

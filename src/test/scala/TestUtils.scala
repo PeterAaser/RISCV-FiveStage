@@ -6,6 +6,10 @@ import PrintUtils._
 
 object TestUtils {
 
+  implicit class OptionBackport(t: Option.type){
+    def when[T](b: Boolean)(t: => T) = if(b) Some(t) else None
+  }
+
   /**
     * Generate and serialize BTrees for the test runner
     */
