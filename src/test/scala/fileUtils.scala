@@ -61,7 +61,10 @@ object fileUtils {
   def getAllTests: List[File] = getListOfFilesRecursive(getTestDir.getPath)
       .filter( f => f.getPath.endsWith(".s") )
 
-  def getAllTestNames: List[String] = getAllTests.map(_.toString.split("/").takeRight(1).mkString)
+  def getAllTestNames: List[String]        = getAllTests.map(_.toString.split("/").takeRight(1).mkString)
+
+  // Not tested.
+  def getAllWindowsTestNames: List[String] = getAllTests.map(_.toString.split("\\\\").takeRight(1).mkString)
 
   def clearTestResults = {
     try {

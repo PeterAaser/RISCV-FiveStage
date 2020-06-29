@@ -39,7 +39,6 @@ object Instruction {
 
 
 class ControlSignals extends Bundle(){
-  val memToReg   = Bool()
   val regWrite   = Bool()
   val memRead    = Bool()
   val memWrite   = Bool()
@@ -51,7 +50,6 @@ class ControlSignals extends Bundle(){
 object ControlSignals {
   def nop: ControlSignals = {
     val b = Wire(new ControlSignals)
-    b.memToReg   := false.B
     b.regWrite   := false.B
     b.memRead    := false.B
     b.memWrite   := false.B

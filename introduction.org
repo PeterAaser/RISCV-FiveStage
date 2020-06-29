@@ -1,0 +1,214 @@
+* About RISCV-FiveStage
+  The task in this exercise is to implement a 5-stage pipelined processor for
+  the [[./instructions.org][RISCV32I instruction set]].
+  
+  This exercise framework is used for the two graded exercises in the processor
+  design course TDT4255, however you are more than welcome to use this project
+  yourself, or to teach a class. Please reach out if you do!
+  
+  If you are doing this as part of the TDT4255 course be sure to join our slack
+  group. Slack links only last for a month, so the invite link will likely be
+  expired. 
+  Here it is anyways, feel free to join even if you're not taking the course at NTNU.
+  https://join.slack.com/t/tdt4255-2020/shared_invite/zt-erb9fbnm-NscwZGNsVSTjYPnSCjo1aA
+  
+  In this exercise you will build a 5-stage RISCV32I processor that is able to run
+  real RISC-V programs as long as they only use the 32I instruction subset.
+  Since this is your first time building a processor, starting with a 5-stage design
+  presents a very difficult challenge, which is why this exercise is split into two
+  parts. In the first part the instructions will be interspersed with NOP instructions,
+  four NOPs for every real. This means that you do not need to take into account
+  dependencies and so forth, making things a lot easier for you.
+  
+  For the second exercise the only difference is that NOP instructions will not be
+  inserted. You can read about this in the [[exercise2.org][ex2 guide]], and will not be discussed
+  further here.
+
+  In the project skeleton files ([[./src/main/scala/][Found here]]) you can see that a lot of code has
+  already been provided, which can make it difficult to get started.
+  Hopefully this document can help clear up at least some of the confusion.
+  The rest of this document gives an overview of the exercise framework and testing. 
+  If you want to jump straight to something practical you can start following the 
+  [[exercise.org][exercise guide]], however at some point you should read through the rest of this document.
+  
+** A tour of FiveStage
+   In order to orient yourself you first need a map, thus a high level overview of the 
+   processor you're going to design is showed underneath:
+   Keep in mind that this is just a high level sketch, omitting many details as well
+   entire features (for instance branch logic)
+
+   *Important*
+   When you are done, use the provided ./deliver.sh script to pack up the archive.
+   If you're unable to run bash scripts then please ensure that you deliver a *zip* archive.
+   Not .rar or anything else, just use zip because my grading script knows how to handle that
+   in addition to the one used by deliver.sh
+   named after your username. Nothing more, nothing less, just your username.
+   This archive should be runnable as is, thus you need to include all the necessary files.
+   (I may or may not diff the tests to check if you're screwing with them)
+
+   #+CAPTION: A very high level processor schematic. Registers, Instruction and data memory are already implemented.
+   #+attr_html: :width 1000px
+   #+attr_latex: :width 1000px
+   [[./Images/FiveStage.png]]
+   
+   Now that you have an idea of what you're building it is time to take inventory of
+   the files included in the skeleton, and what, if anything should be added.
+
+   + [[./src/main/scala/Tile.scala]]
+     
+     This is the top level module for the system as a whole. This is where the test
+     harness accessses your design, providing the necessary IO. 
+     
+     *You should not modify this module for other purposes than debugging.*
+
+   + [[./src/main/scala/CPU.scala]]
+     
+     This is the top level module for your processor.
+     In this module the various stages and barriers that make up your processor
+     should be declared and wired together.
+     Some of these modules have already been declared in order to wire up the
+     debugging logic for your test harness.
+     This file corresponds to the high-level overview in its entirety.
+     
+     *This module is intended to be further fleshed out by you.*
+     
+     As you work with this module, try keeping logic to a minimum to help readability.
+     If you end up with a lot of signal select logic, consider moving that to a separate
+     module.
+     
+   + [[./src/main/scala/IF.scala]]
+     
+     This is the instruction fetch stage.
+     In this stage instruction fetching should happen, meaning you will have to
+     add logic for handling branches, jumps, and for exercise 2, stalls.
+     The reason this module is already included is that it contains the instruction
+     memory, described next which is heavily coupled to the testing harness.
+     
+     *This module is intended to be further fleshed out by you.*
+     
+   + [[./src/main/scala/IMem.scala]]
+     
+     This module contains the instruction memory for your processor.
+     Upon testing the test harness loads your program into the instruction memory,
+     freeing you from the hassle.
+     
+     *You should not modify this module for other purposes than maaaaybe debugging.*
+
+   + [[./src/main/scala/ID.scala]]
+     
+     The instruction decode stage.
+     The reason this module is included is that the registers reside here, thus
+     for the test harness to work it must be wired up to the register unit to
+     record its state updates.
+     
+     *This module is intended to be further fleshed out by you.*
+     
+   + [[./src/main/scala/Registers.scala]]
+     
+     Contains the registers for your processor. Note that the zero register is alredy
+     disabled, you do not need to do this yourself.
+     The test harness ensures that all register updates are recorded.
+     
+     *You should not modify this module for other purposes than maaaaybe debugging.*
+     
+   + [[./src/main/scala/MEM.scala]]
+     
+     Like ID and IF, the MEM skeleton module is included so that the test harness
+     can set up and monitor the data memory
+     
+     *This module is intended to be further fleshed out by you.*
+
+   + [[./src/main/scala/DMem.scala]]
+     
+     Like the registers and Imem, the DMem is already implemented.
+     
+     *You should not modify this module for other purposes than maaaaybe debugging.*
+     
+   + [[./src/main/scala/Const.scala]]
+     
+     Contains helpful constants for decoding, used by the decoder which is provided.
+     
+     *This module may be fleshed out further by you if you so choose.*
+
+   + [[./src/main/scala/Decoder.scala]]
+     
+     The decoder shows how to conveniently demux the instruction.
+     In the provided ID.scala file a decoder module has already been instantiated.
+     You should flesh it out further.
+     You may find it useful to alter this module, especially in exercise 2.
+     
+     *This module should be further fleshed out by you.*
+
+   + [[./src/main/scala/ToplevelSignals.scala]]
+     
+     Contains helpful constants. 
+     You should add your own constants here when you find the need for them.
+     You are not required to use it at all, but it is very helpful.
+     
+     *This module can be further fleshed out by you.*
+     
+   + [[./src/main/scala/SetupSignals.scala]]
+     
+     You should obviously not modify this file.
+     You may choose to create a similar file for debug signals, modeled on how
+     the test harness is built.
+     
+     *You should not modify this module at all.*
+   
+
+**  Tests
+    In addition to the skeleton files it's useful to take a look at how the tests work.
+    You will not need to alter anything here other than the [[./src/test/scala/Manifest.scala][test manifest]], but some
+    of these settings can be quite useful to alter.
+    The main attraction is the test options. By altering the verbosity settings you
+    may change what is output.
+    The settings are:
+
+    + printIfSuccessful
+      Enables logging on tests that succeed.
+      You typically want this turned off, at least for the full test runner.
+
+    + printErrors
+      Enables logging of errors. You obviously want this one on, at least on the single
+      test.
+
+    + printParsedProgram
+      Prints the desugared program. Useful when the test asm contains instructions that
+      needs to be expanded or altered.
+      Unsure what "bnez" means? Turn this setting on and see!
+      
+    + printVMtrace
+      Enables printing of the VM trace, showing how the ideal machine executes a test
+
+    + printVMfinal
+      Enables printing of the final VM state, showing how the registers look after
+      completion. Useful if you want to see what a program returns.
+
+    + printMergedTrace
+      Enables printing of a merged trace. With this option enabled you get to see how
+      the VM and your processor executed the program side by side.
+      This setting is extremely helpful to track down where your program goes wrong!
+      This option attempts to synchronize the execution traces as best as it can, however
+      once your processor design derails this becomes impossible, leading to rather
+      nonsensical output.
+      The output should look like this (picture is from exercise 2, without NOP padding)
+      #+attr_html: :width 300px
+      #+attr_latex: :width 3000px
+      [[./Images/merged.png]]
+
+      Instructions that were only executed by either VM or Your design is colored red or
+      blue.
+      
+      *IF YOU ARE COLOR BLIND YOU SHOULD ALTER THE DISPLAY COLORS!*
+      
+      On some windows terminal emulators there exists a bug that causes colors to not display
+      correctly, giving your terminal a very.. rastafarian look as shown below:
+      #+attr_html: :width 300px
+      #+attr_latex: :width 3000px
+      [[./Images/rasta.png]]
+      
+    + nopPadded
+      Set this to false when you're ready to enter the big-boy league
+
+    + breakPoints
+      Not implemented. It's there as a teaser, urging you to implement it so I don't have to.

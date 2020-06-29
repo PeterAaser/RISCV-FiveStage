@@ -2,7 +2,7 @@
 4.2. Register-Register Arithmetic Instructions
 --------------------------------------------------------------------------
 
-These do not render well on github, try using your text editor.
+If these do not render well on github, try using your text editor.
 
 * ADD
 

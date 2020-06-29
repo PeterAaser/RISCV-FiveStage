@@ -65,7 +65,6 @@
    rs1: 4               ||     rs1: 4              ||      rs1: 1
    rs2: 5               ||     rs2: 6              ||      rs2: 2
    rd:  6               ||     rd:  4              ||      rd:  5
-   memToReg = false     ||     memToReg = false    ||      memToReg = false
    regWrite = true      ||     regWrite = false    ||      regWrite = true
    memWrite = false     ||     memWrite = false    ||      memWrite = false
    branch   = false     ||     branch   = true     ||      branch   = false
@@ -245,7 +244,7 @@
    For this task it is necessary to use something more sophisticated than ~Map[(Int, Boolean)]~ to represent
    your branch predictor model.
 
-   The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileTest.
+   The skeleton code is located in ~testRunner.scala~ and can be run using testOnly FiveStage.ProfileBranching.
 
    With a 2 bit 8 slot scheme, how many mispredicts will happen?
    Answer with a number.

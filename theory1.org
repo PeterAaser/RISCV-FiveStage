@@ -6,12 +6,15 @@
   when grading these questions, thus even with no implementation at all you
   should still be able to score 100% on the theory questions.
   
-  All questions can be answered in a few sentences. Remember that brevity is the
-  soul of wit, and also the key to getting a good score.
+  All questions can be answered in a few sentences. Remember that brevity is wit,
+  and also the key to getting a good score.
+  You should easily be able to fit your entire answer on a single screen.
 
 ** Question 1
-   2 points.
+   *2 points.*
 *** Part 1
+**** Part 1½
+    *½ points.*
     When decoding the BNE branch instruction in the above assembly program
     #+begin_src asm
     bne x6, x2, "loop",
@@ -19,13 +22,27 @@
     
     In your design, what is the value of each of the control signals below?
      
-    + memToReg
     + regWrite
     + memRead
     + memWrite
     + branch
     + jump
 
+**** Part 1¼
+    *½ points.*
+    When decoding the LW instruction in the above assembly program
+    #+begin_src asm
+    jal x1, 0x10(x1)
+    #+end_src
+    
+    In your design, what is the value of each of the control signals below?
+     
+    + regWrite
+    + memRead
+    + memWrite
+    + branch
+    + jump
+      
     Keep in mind that your design and your implementation are separate entities, thus
     you should answer this question based on your ideal design, not your finished 
     implementation.
@@ -33,7 +50,6 @@
 *** Part 2
    During execution, at some arbitrary cycle the control signals are:
 
-   + memToReg = 0
    + regWrite = 1
    + memRead  = 0
    + memWrite = 0
@@ -48,7 +64,10 @@
    implementation.
    
 ** Question 2
-   4 points.
+   *4 points.*
+   *NO PARTIAL CREDITS*
+   Since you can test your solution with the testing framework I will not offer any
+   points for a near correct solution to this problem.
 
    Reading the binary of a RISC-V program you get the following:
 
@@ -77,11 +96,23 @@
    #+end_src
    
    *Your answer should be in the form of a simple asm program.*
-   (hint 1: the original asm program had a label, you need to infer where that label was)
-   (hint 2: verify your conclusion by assembling your answer)
+   + hint 1: 
+     the original asm program had a label, you need to infer where that label was
+
+   + hint 2: 
+     Verify your conclusion by assembling your answer.
+     To do this, make an asm program, place it with the rest of the tests and set
+     ~printBinary~ to ~true~ in ~singleTestOptions~ in ~Manifest.scala~ which will
+     print the full binary of your program.
+     As long as your program generates the same binary as the supplied your program
+     is correct.
+     
 
 ** Question 3
-   4 points.
+   *4 points.*
+   *NO PARTIAL CREDITS*
+   Since you can test your solution with the testing framework I will not offer any
+   points for a near correct solution to this problem.
 
    In order to load a large number LUI and ADDI are used.
    consider the following program
@@ -94,5 +125,37 @@
    #+end_src
    
    a) Which of these instructions will be split into ADDI LUI pairs?
-   b) Why do the two last instructions need to be handled differently from each other?
-   (hint: The parser and assembler in the test suite can help you answer this question)
+   b) Explain in 3 sentences or less *how* the two last ops are handled differently and *why*.
+   
+   + hint 1: 
+     The parser and assembler in the test suite can help you answer the first part of
+     this question (a).
+     Create an asm file, put it with the rest of the tests and run it, setting the correct
+     test options in ~singleTestOptions~ defined in ~Manifest.scala~ and observe the output.
+     
+   + hint 2:
+     While it's probably easier to solve this problem using the internet, however you 
+     can also figure out what is happening by browsing the assembler source code which
+     will hopefully give you a deeper insight into what is going on here.
+     
+     Look at ~Parser.scala~, specifically what happens when an ~li~ instruction is parsed.
+     When parsing an instruction the parser first attempts to apply the 
+     ~singleInstruction~ rule, however this only succeeds if the immediate value
+     obeys certain restrictions (~nBits <= 12~), if not it fails.
+     
+     If the ~singleInstruction~ rule fails the parser then attempts to apply the
+     ~multipleInstructions~ rule instead which expands operations into a list of real ops.
+     When this happens the resulting operations are defined as the following:
+     #+begin_src scala
+     stringWs("li") ~> (reg <~ sep, (hex | int).map(_.splitHiLo(20))).mapN{ case(rd, (hi, lo)) => {
+       List(
+       ArithImm.add(rd, rd, lo),
+       LUI(rd, if(lo > 0) hi else hi+1),
+     )}}.map(_.widen[Op]),
+     #+end_src
+     This is quite a lot to unpack, but you can focus on the line where the ~LUI~ is constructed.
+     ~hi~ and ~lo~ are the results of ~splitHiLo~ which splits a 32 bit word into a 12 bit and a
+     20 bit.
+     Try this for yourself on paper; what happens when ~lo~ ends up being a negative number?
+     What is the interplay between incrementing ~hi~ with 1 and adding a ~lo~ that is represented
+     as a negative value?

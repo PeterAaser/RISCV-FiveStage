@@ -1,229 +1,83 @@
-* Exercise description
-  The task in this exercise is to implement a 5-stage pipelined processor for
-  the [[./instructions.org][RISCV32I instruction set]].
+* Getting started
+  In order to make a correct design in a somewhat expedient fashion you need to be
+  *methodical!* 
   
-  For exercise 1 you will build a 5-stage processor which handles one instruction
-  at a time, whereas in exercise 2 your design will handle multiple instructions
-  at a time.
-  This is done by inserting 4 NOP instructions inbetween each source instruction,
-  enabling us to use the same tests and harness for both exercise 1 and 2.
+  This means you should have a good idea of how your processor should work *before*
+  you start writing code. While chisel is more pleasent to work with than other HDLs
+  the [[https://i.imgur.com/6IpVNA7.jpg][bricoleur]] approach is not recommended.
   
-  Once you are done with exercise 1, you can up the difficulty by setting nopPad
-  to false and start reading the [[exercise2.org][ex2 guide]].
-
-  In the project skeleton files ([[./src/main/scala/][Found here]]) you can see that a lot of code has
-  already been provided, which can make it difficult to get started.
-  Hopefully this document can help clear up at least some of the confusion.
-  First an overview of what you are designing is presented, followed by a walk-through
-  for getting the most basic instructions to work.
+  My recommended approach is therefore to create an RTL sketch of your processor design.
+  Start with an overall sketch showing all the components, then drill down.
+  In your sketch you will eventually add a box for registers, IMEM and DMEM, which
+  should make it clear how the already finished modules fit into the grander design,
+  making the skeleton-code less mysterious.
   
-  In order to orient yourself you first need a map, thus a high level overview of the 
-  processor you're going to design is showed underneath:
-  Keep in mind that this is just a high level sketch, omitting many details as well
-  entire features (for instance branch logic)
-
-  *Important*
-  When you are done, use the provided ./deliver.sh script to pack up the archive.
-  If you're unable to run bash scripts then please ensure that you deliver a *zip* archive.
-  Not .rar or anything else, just use zip because my grading script knows how to handle that
-  in addition to the one used by deliver.sh
-  named after your username. Nothing more, nothing less, just your username.
-  This archive should be runnable as is, thus you need to include all the necessary files.
-  (I may or may not diff the tests to check if you're screwing with them)
-
-  #+CAPTION: A very high level processor schematic. Registers, Instruction and data memory are already implemented.
-  [[./Images/FiveStage.png]]
-  
-  Now that you have an idea of what you're building it is time to take inventory of
-  the files included in the skeleton, and what, if anything should be added.
-
-  + [[./src/main/scala/Tile.scala]]
-    This is the top level module for the system as a whole. This is where the test
-    harness accessses your design, providing the necessary IO. 
-    *You should not modify this module for other purposes than debugging.*
-
-  + [[./src/main/scala/CPU.scala]]
-    This is the top level module for your processor.
-    In this module the various stages and barriers that make up your processor
-    should be declared and wired together.
-    Some of these modules have already been declared in order to wire up the
-    debugging logic for your test harness.
-    This file corresponds to the high-level overview in its entirety.
-    *This module is intended to be further fleshed out by you.*
-    As you work with this module, try keeping logic to a minimum to help readability.
-    If you end up with a lot of signal select logic, consider moving that to a separate
-    module.
-    
-  + [[./src/main/scala/IF.scala]]
-    This is the instruction fetch stage.
-    In this stage instruction fetching should happen, meaning you will have to
-    add logic for handling branches, jumps, and for exercise 2, stalls.
-    The reason this module is already included is that it contains the instruction
-    memory, described next which is heavily coupled to the testing harness.
-    *This module is intended to be further fleshed out by you.*
-    
-  + [[./src/main/scala/IMem.scala]]
-    This module contains the instruction memory for your processor.
-    Upon testing the test harness loads your program into the instruction memory,
-    freeing you from the hassle.
-    *You should not modify this module for other purposes than maaaaybe debugging.*
-
-  + [[./src/main/scala/ID.scala]]
-    The instruction decode stage.
-    The reason this module is included is that the registers reside here, thus
-    for the test harness to work it must be wired up to the register unit to
-    record its state updates.
-    *This module is intended to be further fleshed out by you.*
-    
-  + [[./src/main/scala/Registers.scala]]
-    Contains the registers for your processor. Note that the zero register is alredy
-    disabled, you do not need to do this yourself.
-    The test harness ensures that all register updates are recorded.
-    *You should not modify this module for other purposes than maaaaybe debugging.*
-    
-  + [[./src/main/scala/MEM.scala]]
-    Like ID and IF, the MEM skeleton module is included so that the test harness
-    can set up and monitor the data memory
-    *This module is intended to be further fleshed out by you.*
-
-  + [[./src/main/scala/DMem.scala]]
-    Like the registers and Imem, the DMem is already implemented.
-    *You should not modify this module for other purposes than maaaaybe debugging.*
-    
-  + [[./src/main/scala/Const.scala]]
-    Contains helpful constants for decoding, used by the decoder which is provided.
-    *This module may be fleshed out further by you if you so choose.*
-
-  + [[./src/main/scala/Decoder.scala]]
-    The decoder shows how to conveniently demux the instruction.
-    In the provided ID.scala file a decoder module has already been instantiated.
-    You should flesh it out further.
-    You may find it useful to alter this module, especially in exercise 2.
-    *This module should be further fleshed out by you.*
-
-  + [[./src/main/scala/ToplevelSignals.scala]]
-    Contains helpful constants. 
-    You should add your own constants here when you find the need for them.
-    You are not required to use it at all, but it is very helpful.
-    *This module can be further fleshed out by you.*
-    
-  + [[./src/main/scala/SetupSignals.scala]]
-    You should obviously not modify this file.
-    You may choose to create a similar file for debug signals, modeled on how
-    the test harness is built.
-    *You should not modify this module at all.*
-  
-
-** Tests
-   In addition to the skeleton files it's useful to take a look at how the tests work.
-   You will not need to alter anything here other than the [[./src/test/scala/Manifest.scala][test manifest]], but some
-   of these settings can be quite useful to alter.
-   The main attraction is the test options. By altering the verbosity settings you
-   may change what is output.
-   The settings are:
-
-   + printIfSuccessful
-     Enables logging on tests that succeed.
-     You typically want this turned off, at least for the full test runner.
-
-   + printErrors
-     Enables logging of errors. You obviously want this one on, at least on the single
-     test.
-
-   + printParsedProgram
-     Prints the desugared program. Useful when the test asm contains instructions that
-     needs to be expanded or altered.
-     Unsure what "bnez" means? Turn this setting on and see!
-     
-   + printVMtrace
-     Enables printing of the VM trace, showing how the ideal machine executes a test
-
-   + printVMfinal
-     Enables printing of the final VM state, showing how the registers look after
-     completion. Useful if you want to see what a program returns.
-
-   + printMergedTrace
-     Enables printing of a merged trace. With this option enabled you get to see how
-     the VM and your processor executed the program side by side.
-     This setting is extremely helpful to track down where your program goes wrong!
-     This option attempts to synchronize the execution traces as best as it can, however
-     once your processor design derails this becomes impossible, leading to rather
-     nonsensical output.
-     Instructions that were only executed by either VM or Your design is colored red or
-     blue.
-     
-     *IF YOU ARE COLOR BLIND YOU SHOULD ALTER THE DISPLAY COLORS!*
-     
-   + nopPadded
-     Set this to false when you're ready to enter the big-boy league
-
-   + breakPoints
-     Not implemented. It's there as a teaser, urging you to implement it so I don't have to.
-
-
-** Getting started
-   In order to make a correct design in a somewhat expedient fashion you need to be
-   *methodical!* 
-   
-   This means you should have a good idea of how your processor should work *before*
-   you start writing code. While chisel is more pleasent to work with than other HDLs
-   the [[https://i.imgur.com/6IpVNA7.jpg][bricoleur]] approach is not recommended.
-   
-   My recommended approach is therefore to create an RTL sketch of your processor design.
-   Start with an overall sketch showing all the components, then drill down.
-   In your sketch you will eventually add a box for registers, IMEM and DMEM, which
-   should make it clear how the already finished modules fit into the grander design,
-   making the skeleton-code less mysterious.
-   
-   To give you an idea of how a drill down looks like, here is my sketch of the ID stage:
-   #+CAPTION: Instruction decode stage, showing the various signals.
+  To give you *an idea* of how a drill down looks like, here is my sketch of the ID stage:
+  Note that this sketch does not contain everything an ID stage needs to contain, this is
+  simply an example. First draft was made on paper.
+  #+CAPTION: Instruction decode stage, showing the various signals.
+  #+attr_html: :width 1000px
+  #+attr_latex: :width 1000px
    [[./Images/IDstage.png]]
    
-   I would generally advice to do these on paper, but don't half-ass them.
+  I would generally advice to do these on paper, but don't half-ass them.
+  I advise you to use squared paper unless you are exceptionally talented at freehand drawing.
 
 
 ** Adding numbers
    In order to get started designing your processor the following steps guide you to
-   implementing the necessary functionality for adding two integers.
+   implementing the necessary functionality for adding two integers by implementing the
+   ~ADDI~ operation which you can read about in [[instructions.org][the ISA overview.]]
 
-   Info is progressively being omitted in the latter steps in order to not bog you down
-   in repeated details. After all brevity is ~~the soul of~~ wit
+   Info will be progressively omitted in the later steps in order to not bog you down
+   in repetitive details. After all brevity is wit.
    
 *** Step 0
     In order to verify that the project is set up properly, open sbt in your project root
     by typing ~./sbt.sh~ (or simply sbt if you already use scala).
     sbt, which stands for scala build tool will provide you with a repl where you can
-    compile and test your code.
+    compile and test your code. This should be familiar from the chisel introduction exercise.
+    If you have not done this I advise you to complete it first, it can be found here: [[https://github.com/PeterAaser/tdt4255-chisel-intro][Chisel Intro]] 
    
-    The initial run will take quite a while to boot as all the necessary stuff is downloaded.
+    The initial run might take quite a while to finish as all the necessary stuff is downloaded.
 
 **** Step ¼:
-     In your console, type ~compile~ to verify that everything compiles correctly.
+     In your sbt console, type ~compile~ to verify that everything compiles correctly.
 
 **** Step ½:
      In your console, type ~test~ to verify that the tests run, and that chisel can correctly
      build your design.
-     This command will unleash the full battery of tests on you.
+     This command will unleash the full battery of tests on you, so be prepared for a lot of
+     console outpute.
 
 **** Step ¾:
-     In your console, type ~testOnly FiveStage.SingleTest~ to run only the tests that you
-     have defined in the [[./src/test/scala/Manifest.scala][test manifest]] (currently set to ~forward2.s~).
+     To reduce the amount of tests being run you need to modify the [[./src/test/scala/Manifest.scala][test manifest]].
+     In the very top of the ~Manifest~ object, change the value of ~singleTest~ from ~"forward2.s"~ 
+     to ~"addi.s"~. It is not necessary to deal with filepaths, all tests are globally visible and
+     should preferrably not share names even if they are in different directories.
+     
+     The full battery of tests can be found in [[./src/test/resources/tests/]] but for now focus on
+     [[./src/test/resources/tests/basic/immediate/addi.s]] which as you can see is an assembly file
+     consisting only of ~addi~ instructions.
 
-     As you will first implement addition you should change this to the [[./src/test/resources/tests/basic/immediate/addi.s][add immediate test]].
-     Luckily you do not have to deal with file paths, simply changing ~forward2.s~ to
-     ~addi.s~ suffices.
-
-     Ensure that the addi test is run by repeating the ~testOnly FiveStage.SingleTest~
-     command.
+     When running the following in the sbt console: ~testOnly FiveStage.SingleTest~
+     only the test pointed at in ~Manifest.singleTest~ will be run, and the log will be more
+     thorough.
+     For now the log will be rather confusing since your processor is doing nothing.
+     As you follow the guide you will see the output log making more sense!
+     
+     Now that only one test is running it is time to take it from red to green.
    
-*** Step 1:
+*** Step 1: Starting the clock
     In order to execute instructions your processor must be able to fetch them.
     In [[./src/test/main/IF.scala]] you can see that the IMEM module is already set to fetch
     the current program counter address (line 41), however since the current PC is stuck
     at 0 it will fetch the same instruction over and over. Rectify this by commenting in
     ~// PC := PC + 4.U~ at line 48.
     You can now verify that your design fetches new instructions each cycle by running
-    the test as in the previous step.
+    the test as in the previous step. The log should now be much shorter since the tester
+    will be able to synchronize the clock and correctly deduce that the DUT (device under test) 
+    is not doing anything.
 
 *** Step 2:
     Next, the instruction must be forwarded to the ID stage, so you will need to add the
@@ -231,17 +85,29 @@
     In [[./src/test/main/IF.scala]] at line 21 you can see how the program counter is already
     defined as an output. 
     You should do the same with the instruction signal.
-
+    
+    *Note*
+    Even though an instruction is just a 32 bit signal it is very useful to treat it as
+    a more refined type.
+    In [[./src/main/scala/ToplevelSignals.scala]] you can see the ~Instruction~ class which
+    comes with many useful helper methods.
+    When defining an output for the instruction you need to define the type as follows:
+    ~Output(new Instruction)~
+    This is also explained in the comments in the file itself.
 
 *** Step 3:
     As you defined the instruction as an output for your IF module, declare it as an input
     in your ID module ([[./src/test/main/ID.scala]] line 21).
+    This input should be defined nearly identical to step 2, only substituting ~Output~ with 
+    ~Input~ like the following: ~Input(new Instruction)~
 
     Next you need to ensure that the registers and decoder gets the relevant data from the
     instruction.
-
     This is made more convenient by the fact that ~Instruction~ is a class, allowing you
     to access methods defined on it.
+    Your IDE should give you some hints as to what these methods are, but if you want to look 
+    at the definition you can check out ~Instruction~ in ~TopLevelSignals.scala~.
+    
     Keep in mind that it is only a class during compile and build time, it will be 
     indistinguishable from a regular ~UInt(32.W)~ in your finished circuit.
     The methods can be accessed like this:
@@ -249,20 +115,30 @@
     // Drive funct6 of myModule with the 26th to 31st bit of instruction
     myModule.io.funct6 := io.instruction.funct6
     #+END_SRC
-
+    
+    
 *** Step 4:
     Your IF should now have an instruction as an OUTPUT, and your ID as an INPUT, however
     they are not connected. This must be done in the CPU class where both the ID and IF are
     instantiated.
-    In the overview sketch you probably noticed the barriers between IF and ID.
+    In the overview sketch you probably noticed the *barriers* between IF and ID.
     In accordance with the overview, it is incorrect to directly connect the two modules,
-    instead you must connect them using a *barrier*.
+    instead you must connect them using a barrier.
+    
     A barrier is responsible for keeping a value inbetween cycles, facilitating pipelining.
     There is however one complicating matter: It takes a cycle to get the instruction from the
     instruction memory, thus we don't want to delay it in the barrier!
     
+    It is not very conductive to learning to introduce a rule and then break it right away,
+    however it *is* a good idea to highlight the importance of RTL sketches!
+    If you look at the ID stage sketch at the top you can see that the Instruction memory block
+    is overlapping with the IFID barrier register, reminding you that the instruction should not 
+    be stored in the barrier.
+
     In order to make code readable I suggest adding a new file for your barriers, containing
     four different modules for the barriers your design will need.
+    I prefer one file per barrier rather than one large file for all, but you can do as you
+    please.
 
     Start with implementing your IF barrier module, which should contain the following:
     + An input and output for PC where the output is delayed by a single cycle.
@@ -272,19 +148,41 @@
     The sketch for your barrier looks like this
     #+CAPTION: The barrier between IF and ID. Note the passthrough for the instruction
     [[./Images/IFID.png]]
-
+    
+    *Hints*
+    The instruction signal can be wired straight from input to output.
+    The PC must be saved in a register. You can use ~RegInit(0.U(32.W))~ to define this register.
+    By driving the register with the input PC and the output with the register you will attain
+    a one cycle delay.
+    
 **** Step 4½:
-     You can now verify that the correct control signals are produced. Using printf, ensure
-     that:
+     You can now verify that the correct control signals are produced, either with printf or gtkwave. 
+     ensure that:
      + The program counter is increasing in increments of 4
      + The instruction in ID is as expected
      + The decoder output is as expected
      + The correct operands are fetched from the registers
 
-     Keep in mind that printf might not always be cycle accurate, the point is to ensure that
-     your processor design at least does something! In general it is better to use debug signals
-     and println, but for quick and dirty debugging printf is passable.
+     I advise you to use gtkwave first and foremost since it has a learning curve and is very useful.
+     Unlike previous exercise the outputs are now located in the waveform directory and is automatically
+     produced each time you run a test.
 
+     The following image shows gtkwave output with some formatting showing the desired results:
+     [[./Images/wave1.png]]
+     
+     As you can see, this isn't very helpful, there's a little too much data, however it does verify that something is going on.
+     If you followed the introduction you might have wondered how the bootloader works, which is what you are seeing here.
+     While a program is being loaded the setup signal in the testHarness is true (1), thus you should zoom in on what happens as
+     soon as the setup signal is set to false, which is when your processor starts working.
+     
+     By zooming in on this region you should see something similar (I've set data format to decimal in this image to make the output
+     more readable).
+     As you can see, the PC signal that ID receives is one cycle delayed compared to IF, whereas the instruction signal is not since
+     it is one cycle delayed anyways.
+     [[./Images/wave2.png]]
+
+     You should also verify that ~registers~ get the correct signals.
+     
 *** Step 5:
     You will now have to create the EX stage. Use the structure of the IF and ID modules to
     guide you here.
@@ -309,14 +207,15 @@
     When you have finished the barrier, instantiate it and wire ID and EX together with the barrier in the 
     same fashion as IF and ID.
     You don't need to add every single signal for your barrier, rather you should add them as they
-    become needed.
+    become needed, i.e if you need a signal in EX, wire it from ID.
 
 *** Step 6:
     Your MEM stage does very little when an ADDI instruction is executed, so implementing it should 
     be easy. All you have to do is forward signals.
     
     From the overview sketch you can see that the same trick used in the IF/ID barrier is utilized
-    here, bypassing the data memory read value since it is already delayed by a cycle.
+    here, bypassing the data memory read value since it is already delayed by a cycle, however ~addi~
+    does not interact with the data memory so this can be omitted.
 
 *** Step 7:
     You now need to actually write the result back to your register bank. 
@@ -325,9 +224,15 @@
     signals for the instruction currently in WB, so writing to the correct register address should
     be easy for you ;)
     
-    If you ended up driving the register write address with the instruction from IF you should take
-    a moment to reflect on why that was the wrong choice.
-
+    Did you just realize that you had been driving ~registers.writeEnable~ and ~registers.writeAddress~
+    with the instruction from the IFID barrier?
+    If so the signal is at the correct spot but at the wrong time!
+    
+    It is only when the instruction is fully computed that it should be written back, therefore the 
+    control signals for register write enable and address are propagated through the pipeline at the 
+    same pace as the instruction itself so that they reach the register module when the result is
+    ready!
+    
 *** Step 8:
     Ensure that the simplest addi test works, and give yourself a pat on the back!
     You've just found the corner pieces of the puzzle, so filling in the rest is "simply" being methodical.
